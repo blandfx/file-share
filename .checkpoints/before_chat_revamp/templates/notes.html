@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Edit Note' if filename else 'New Note' }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 1em;
+            box-sizing: border-box;
+            align-items: stretch;
+            width: 100%;
+            max-width: 100vw; /* Ensure container doesn't exceed viewport width */
+            overflow-x: hidden; /* Prevent horizontal overflow */
+        }
+        
+        /* Desktop: comfortable width for writing */
+        @media (min-width: 769px) {
+            .container {
+                max-width: 1000px;
+                width: 80%;
+                margin: 0 auto;
+            }
+        }
+        
+        .nav-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 0 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+            width: auto;
+            height: 48px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .nav-button:hover {
+            background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-button i {
+            margin-right: 0;
+        }
+        
+        /* Show text on desktop */
+        .nav-text {
+            margin-left: 6px;
+        }
+        
+        /* Mobile input adjustments */
+        @media (max-width: 768px) {
+            input[type="text"] {
+                max-width: 300px;
+            }
+
+
+        }
+        
+        form {
+            background-color: #2b2b2b;
+            border-radius: 8px;
+            padding: 1.5em;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box; /* Include padding in width calculation */
+            flex-shrink: 0;
+        }
+        
+        .form-header {
+            margin-bottom: 1em;
+        }
+        
+        .header-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 48px;
+        }
+        
+        input[type="text"], textarea {
+            background-color: #3c3c3c;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 0.8em;
+            margin-bottom: 1em;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        
+        input[type="text"] {
+            font-weight: bold;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            height: 48px;
+            text-align: center;
+            box-sizing: border-box;
+            grid-column: 2;
+            width: 100%;
+            max-width: 400px;
+            justify-self: center;
+            margin: 0;
+        }
+        
+        /* Animated save indicator for filename */
+        input[type="text"].saved {
+            border-color: #28a745 !important;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+        }
+        
+        @keyframes saveGlow {
+            0% { 
+                border-color: #28a745;
+                box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+            }
+            50% { 
+                border-color: #20c997;
+                box-shadow: 0 0 8px rgba(32, 201, 151, 0.5);
+            }
+            100% { 
+                border-color: #555;
+                box-shadow: none;
+            }
+        }
+        
+        input[type="text"].save-animation {
+            animation: saveGlow 1.5s ease-out;
+        }
+        
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 200px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        
+        .content-editor {
+            background-color: #3c3c3c;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 0.8em;
+            margin-bottom: 1em;
+            min-height: 200px;
+            max-height: 60vh; /* Prevent it from getting too tall on large screens */
+            line-height: 1.6;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            outline: none;
+            font-family: inherit;
+            font-size: 1rem;
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        
+        .content-editor:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+        
+        .content-editor[data-placeholder]:empty::before {
+            content: attr(data-placeholder);
+            color: #888;
+            font-style: italic;
+        }
+        
+        .content-editor a {
+            color: #4a90e2;
+            text-decoration: underline;
+            word-break: break-all;
+            cursor: pointer;
+        }
+        
+        .content-editor a:hover {
+            color: #5aa1f2;
+            text-decoration: none;
+        }
+        
+        /* Prevent link editing when clicked */
+        .content-editor a {
+            pointer-events: auto;
+        }
+        
+
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5em;
+                width: 100%;
+                max-width: 100vw;
+            }
+            
+            form {
+                padding: 1em;
+                margin: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            /* Ensure content editor doesn't overflow on mobile */
+            .content-editor {
+                min-height: 150px;
+                max-height: calc(100vh - 200px);
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            /* Ensure all inputs fit within mobile viewport */
+            input[type="text"], textarea {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .header-row {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            input[type="text"] {
+                max-width: 100%;
+                min-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form action="{{ url_for('submit_text') }}" method="post" id="noteForm">
+            <div class="form-header">
+                <div class="header-row">
+                    <input type="hidden" name="original_filename" value="{{ filename }}">
+                    <input type="text" name="new_filename" id="filenameInput" value="{{ filename or '' }}" placeholder="Enter filename..." {% if 'note_' in filename %}readonly{% endif %}>
+                </div>
+            </div>
+
+            <div class="content-container">
+                <div id="contentInput" class="content-editor" contenteditable="true" data-placeholder="Enter your note here...">{{ content }}</div>
+                <textarea name="content" id="hiddenTextarea" style="display: none;">{{ content }}</textarea>
+            </div>
+
+            <div class="nav-button-container">
+                <a href="{{ url_for('list_files') }}" class="nav-button">
+                    <i class="fa fa-arrow-left"></i><span class="nav-text"> Back to Files</span>
+                </a>
+            </div>
+            
+
+        </form>
+    </div>
+
+    <script>
+        // Auto-save functionality
+        let autoSaveTimeout;
+        let lastSavedContent = '';
+        let lastSavedFilename = '';
+        
+        const filenameInput = document.getElementById('filenameInput');
+        const contentInput = document.getElementById('contentInput');
+        const hiddenTextarea = document.getElementById('hiddenTextarea');
+        const form = document.getElementById('noteForm');
+        const originalFilenameInput = document.querySelector('input[name="original_filename"]');
+        
+        // URL detection and linking
+        const urlRegex = /(https?:\/\/[^\s\n\r<>"']+)/gi;
+        let isProcessing = false;
+        let isAutoSaving = false;
+        let urlProcessTimeout;
+
+        // Debounced URL processing function
+        function debounceUrlProcessing(delay = 300) {
+            clearTimeout(urlProcessTimeout);
+            urlProcessTimeout = setTimeout(() => {
+                processUrls();
+            }, delay);
+        }
+
+        // Function to properly format initial content with line breaks
+        function formatInitialContent() {
+            // Use getPlainText to properly extract text from any HTML structure (divs, ps, brs)
+            // This avoids issues where regex stripping tags would smash content together
+            const plainText = getPlainText(contentInput);
+            
+            // Escape HTML entities to prevent rendering issues
+            const escapedText = plainText
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+            // Re-format with proper HTML structure
+            const formattedHTML = escapedText
+                .replace(/\n/g, '<br>')
+                .replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+
+            // Only update if the formatting has actually changed
+            // We compare roughly to avoid loops, though this runs once on load
+            if (contentInput.innerHTML !== formattedHTML) {
+                console.log('Formatting initial content:', { from: plainText, to: formattedHTML });
+                contentInput.innerHTML = formattedHTML;
+            }
+        }
+
+        function getPlainText(element) {
+            // Get plain text content, preserving line breaks
+            let text = '';
+            for (let node of element.childNodes) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    text += node.textContent;
+                } else if (node.nodeName === 'BR') {
+                    text += '\n';
+                } else if (node.nodeName === 'DIV') {
+                    if (text && !text.endsWith('\n')) text += '\n';
+                    text += getPlainText(node);
+                } else if (node.nodeName === 'A') {
+                    text += node.textContent;
+                } else {
+                    text += getPlainText(node);
+                }
+            }
+            return text;
+        }
+        
+        function saveSelection() {
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const isAtEnd = range.collapsed && range.endOffset === range.endContainer.textContent?.length;
+
+                // Calculate relative position in the text content
+                const textContent = getPlainText(contentInput);
+                let charIndex = 0;
+
+                function calculateCharIndex(node, offset) {
+                    if (node === range.startContainer) {
+                        return charIndex + offset;
+                    }
+
+                    const walker = document.createTreeWalker(
+                        contentInput,
+                        NodeFilter.SHOW_TEXT,
+                        null,
+                        false
+                    );
+
+                    let currentNode;
+                    while (currentNode = walker.nextNode()) {
+                        if (currentNode === node) {
+                            return charIndex + offset;
+                        }
+                        charIndex += currentNode.textContent.length;
+                    }
+                    return charIndex;
+                }
+
+                const charPosition = calculateCharIndex(range.startContainer, range.startOffset);
+                const isCollapsed = range.collapsed;
+
+                return {
+                    charPosition: charPosition,
+                    isCollapsed: isCollapsed,
+                    isAtEnd: isAtEnd,
+                    textLength: textContent.length
+                };
+            }
+            return null;
+        }
+
+        function restoreSelection(savedSelection) {
+            if (!savedSelection) return;
+
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+
+            try {
+                const textContent = getPlainText(contentInput);
+
+                // If we were at the end, position at the new end
+                if (savedSelection.isAtEnd || savedSelection.charPosition >= textContent.length) {
+                    const lastNode = getLastTextNode(contentInput);
+                    if (lastNode) {
+                        const range = document.createRange();
+                        range.setStart(lastNode, lastNode.textContent.length);
+                        range.collapse(true);
+                        selection.addRange(range);
+                        return;
+                    }
+                }
+
+                // Find the node and offset for the character position
+                let charIndex = 0;
+                const walker = document.createTreeWalker(
+                    contentInput,
+                    NodeFilter.SHOW_TEXT,
+                    null,
+                    false
+                );
+
+                let targetNode = null;
+                let targetOffset = 0;
+                let node;
+                while (node = walker.nextNode()) {
+                    const nodeLength = node.textContent.length;
+                    if (charIndex + nodeLength >= savedSelection.charPosition) {
+                        targetNode = node;
+                        targetOffset = savedSelection.charPosition - charIndex;
+                        break;
+                    }
+                    charIndex += nodeLength;
+                }
+
+                if (targetNode) {
+                    const range = document.createRange();
+                    range.setStart(targetNode, Math.min(targetOffset, targetNode.textContent.length));
+                    if (savedSelection.isCollapsed) {
+                        range.collapse(true);
+                    } else {
+                        // For non-collapsed ranges, set end to the same position
+                        range.setEnd(targetNode, Math.min(targetOffset, targetNode.textContent.length));
+                    }
+                    selection.addRange(range);
+                }
+            } catch (e) {
+                // Fallback: position at end of content
+                try {
+                    const lastNode = getLastTextNode(contentInput);
+                    if (lastNode) {
+                        const range = document.createRange();
+                        range.setStart(lastNode, lastNode.textContent.length);
+                        range.collapse(true);
+                        selection.addRange(range);
+                    }
+                } catch (e2) {
+                    // Final fallback: do nothing
+                }
+            }
+        }
+        
+        function getLastTextNode(element) {
+            const walker = document.createTreeWalker(
+                element,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            let lastTextNode = null;
+            let node;
+            while (node = walker.nextNode()) {
+                if (node.textContent.trim() !== '') {
+                    lastTextNode = node;
+                }
+            }
+            return lastTextNode;
+        }
+        
+        function processUrls() {
+            if (isProcessing || isAutoSaving) return;
+            isProcessing = true;
+
+            const savedRange = saveSelection();
+            const text = getPlainText(contentInput);
+
+            // Check if there are URLs that need linking
+            const urlsInText = text.match(urlRegex);
+            if (!urlsInText) {
+                isProcessing = false;
+                return;
+            }
+
+            // Check if all URLs are already properly linked
+            const existingLinks = Array.from(contentInput.querySelectorAll('a[href]'));
+            const unlinkedUrls = urlsInText.filter(url => {
+                return !existingLinks.some(link => link.textContent === url || link.href === url);
+            });
+
+            // Only process if there are genuinely unlinked URLs
+            if (unlinkedUrls.length > 0) {
+                // Convert URLs to links, avoiding double-linking
+                const htmlContent = text.replace(urlRegex, (match) => {
+                    const isAlreadyLinked = existingLinks.some(link =>
+                        link.textContent === match || link.href === match
+                    );
+                    if (isAlreadyLinked) {
+                        return match;
+                    }
+                    return `<a href="${match}" target="_blank" rel="noopener noreferrer">${match}</a>`;
+                });
+
+                // Replace line breaks with <br> tags
+                const finalContent = htmlContent.replace(/\n/g, '<br>');
+
+                // Check if the generated HTML is different from current HTML
+                const normalizedCurrentHTML = contentInput.innerHTML
+                    .replace(/\s*<br\s*\/?>\s*/gi, '<br>')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                const normalizedNewHTML = finalContent
+                    .replace(/\s*<br\s*\/?>\s*/gi, '<br>')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                if (normalizedCurrentHTML !== normalizedNewHTML) {
+                    console.log('Processing URLs - Unlinked URLs found:', unlinkedUrls);
+                    console.log('Processing URLs - Current HTML:', contentInput.innerHTML);
+                    console.log('Processing URLs - New HTML:', finalContent);
+
+                    contentInput.innerHTML = finalContent;
+                    restoreSelection(savedRange);
+                }
+            }
+
+            isProcessing = false;
+        }
+        
+        // Handle input events
+        contentInput.addEventListener('input', function(e) {
+            // Update hidden textarea for auto-save without processing URLs
+            hiddenTextarea.value = getPlainText(contentInput);
+
+            // Only process URLs if we hit a delimiter (space) or it's a structural change
+            // This prevents processing while typing the middle of a URL which causes cursor jumping
+            if (e.data === ' ' || 
+                e.inputType === 'insertParagraph' || 
+                e.inputType === 'insertLineBreak' || 
+                e.inputType === 'insertFromPaste' ||
+                (e.data && e.data.match(/[\s\n]/))) {
+                
+                debounceUrlProcessing(200);
+            }
+
+            // Auto-save trigger - but delay more if we just pressed Enter
+            clearTimeout(autoSaveTimeout);
+            const autoSaveDelay = lastKeyWasEnter ? 2000 : 1000;
+            autoSaveTimeout = setTimeout(autoSave, autoSaveDelay);
+        });
+        
+        // Track enter key presses to avoid immediate URL processing
+        let lastKeyWasEnter = false;
+        contentInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent default Enter behavior
+                
+                // Get current selection
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    
+                    // Insert line break and position cursor
+                    range.deleteContents();
+                    
+                    // Create line break
+                    const br = document.createElement('br');
+                    range.insertNode(br);
+                    
+                    // Check if we need a trailing br (at the end of content)
+                    const needsTrailingBr = !br.nextSibling || 
+                                           (br.nextSibling && br.nextSibling.nodeType === Node.TEXT_NODE && br.nextSibling.textContent.trim() === '');
+                    
+                    if (needsTrailingBr) {
+                        // Add a second br for proper line ending
+                        const trailingBr = document.createElement('br');
+                        range.setStartAfter(br);
+                        range.insertNode(trailingBr);
+                    }
+                    
+                    // Position cursor after the first br (on the new line)
+                    range.setStartAfter(br);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    
+                    // Update hidden textarea
+                    hiddenTextarea.value = getPlainText(contentInput);
+                    
+                    // Set flag for delayed processing
+                    lastKeyWasEnter = true;
+                    
+                    // Clear the flag after a delay
+                    setTimeout(() => {
+                        lastKeyWasEnter = false;
+                    }, 1500);
+
+                    // Trigger processing (delimiter)
+                    debounceUrlProcessing(500);
+                }
+            } else {
+                lastKeyWasEnter = false;
+            }
+        });
+        
+        // Handle blur to ensure everything is processed when leaving the field
+        contentInput.addEventListener('blur', function() {
+            debounceUrlProcessing(100);
+        });
+        
+        // Handle paste events
+        contentInput.addEventListener('paste', function(e) {
+            // Don't prevent default on mobile - let the browser handle it naturally
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // On mobile, let the default paste behavior work
+                // Just update our hidden textarea and process URLs after a delay
+                setTimeout(() => {
+                    hiddenTextarea.value = getPlainText(contentInput);
+                    debounceUrlProcessing(100);
+                    // Trigger autosave after paste
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(autoSave, 1000);
+                }, 100);
+                return;
+            }
+            
+            // Desktop behavior - custom paste handling
+            e.preventDefault();
+            
+            // Get plain text from clipboard
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            
+            if (text) {
+                // Insert plain text at cursor position
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(document.createTextNode(text));
+                    range.collapse(false);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                
+                // Update hidden textarea immediately
+                hiddenTextarea.value = getPlainText(contentInput);
+
+                // Process URLs after paste
+                debounceUrlProcessing(200);
+
+                // Trigger autosave after paste
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(autoSave, 1000);
+            }
+        });
+        
+        // Handle link clicks
+        contentInput.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') {
+                e.preventDefault();
+                window.open(e.target.href, '_blank');
+            }
+        });
+        
+        // Prevent default behavior for links during editing
+        contentInput.addEventListener('mousedown', function(e) {
+            if (e.target.tagName === 'A' && e.detail === 1) {
+                // Single click on link - allow editing
+                e.preventDefault();
+                const range = document.createRange();
+                range.selectNodeContents(e.target);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        });
+        
+        // Function to auto-save
+        function autoSave() {
+            // Don't auto-save if we just pressed Enter and are still in the critical period
+            if (lastKeyWasEnter) {
+                // Reschedule auto-save for later
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(autoSave, 1000);
+                return;
+            }
+            
+            const currentContent = hiddenTextarea.value;
+            const currentFilename = filenameInput.value;
+            
+            if (currentContent !== lastSavedContent || currentFilename !== lastSavedFilename) {
+                isAutoSaving = true;
+                
+                // Create form data for auto-save
+                const formData = new FormData();
+                // Use stored original filename if available, otherwise use the hidden input value
+                const originalFilename = filenameInput.getAttribute('data-original-filename') || originalFilenameInput.value;
+                formData.append('original_filename', originalFilename);
+                formData.append('new_filename', currentFilename);
+                formData.append('content', currentContent);
+                formData.append('auto_save', 'true');
+                
+                // Send auto-save request
+                fetch('{{ url_for("submit_text") }}', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        lastSavedContent = currentContent;
+                        lastSavedFilename = currentFilename;
+
+                        // Update the original filename for subsequent autosaves
+                        if (data.filename && !filenameInput.getAttribute('data-original-filename')) {
+                            filenameInput.setAttribute('data-original-filename', data.filename);
+                        }
+
+                        showSaveAnimation();
+                    } else {
+                        console.error('Auto-save failed:', data.message);
+                        showSaveError();
+                    }
+                })
+                .catch(error => {
+                    console.error('Auto-save error:', error);
+                    showSaveError();
+                })
+                .finally(() => {
+                    isAutoSaving = false;
+                });
+            }
+        }
+        
+        // Function to show save animation
+        function showSaveAnimation() {
+            // Remove any existing animation classes
+            filenameInput.classList.remove('save-animation', 'saved');
+            
+            // Force reflow to ensure the class removal takes effect
+            filenameInput.offsetHeight;
+            
+            // Add the animation class
+            filenameInput.classList.add('save-animation');
+            
+            // Remove the animation class after animation completes
+            setTimeout(() => {
+                filenameInput.classList.remove('save-animation');
+            }, 1500);
+        }
+        
+        // Function to show save error (brief red border)
+        function showSaveError() {
+            filenameInput.style.borderColor = '#dc3545';
+            filenameInput.style.boxShadow = '0 0 0 2px rgba(220, 53, 69, 0.3)';
+            
+            setTimeout(() => {
+                filenameInput.style.borderColor = '';
+                filenameInput.style.boxShadow = '';
+            }, 2000);
+        }
+        
+        // Set up auto-save on filename changes
+        filenameInput.addEventListener('input', () => {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(autoSave, 1000);
+        });
+        
+
+        
+        // Generate default filename for new notes
+        function generateTimestampFilename() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            return `note_${year}-${month}-${day}_${hours}-${minutes}.txt`;
+        }
+        
+        // Initialize
+        setTimeout(() => {
+            // First, ensure initial content is properly formatted
+            formatInitialContent();
+
+            // Then process URLs if needed
+            debounceUrlProcessing(0);
+
+            lastSavedContent = getPlainText(contentInput);
+            lastSavedFilename = filenameInput.value;
+
+            // Set default filename for new notes
+            if (!filenameInput.value || filenameInput.value.trim() === '') {
+                filenameInput.value = generateTimestampFilename();
+                lastSavedFilename = filenameInput.value;
+            }
+        }, 100);
+    </script>
+</body>
+</html>

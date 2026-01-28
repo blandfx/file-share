@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mileage Tracker</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #E0E0E0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            background-color: #1E1E1E;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            max-width: 500px;
+            width: 100%;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #4CAF50;
+        }
+        .info {
+            margin-bottom: 20px;
+        }
+        .info p {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        .surplus {
+            font-size: 4em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: {{ 'green' if surplus >= 0 else 'red' }};
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="number"] {
+            padding: 10px;
+            font-size: 1em;
+            width: 80%;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.95em;
+        }
+        .error-message {
+            color: #f44336;
+        }
+        .success-message {
+            color: #4CAF50;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 1.5em;
+            }
+            .surplus {
+                font-size: 1.5em;
+            }
+            .info p {
+                font-size: 1em;
+            }
+            input[type="number"] {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Mileage Tracker</h1>
+        </div>
+        <div class="info">
+            <p><strong>{{ date }}</strong></p>
+            <p>Lease Day: <strong>{{ lease_day }}</strong></p>
+            <p>Allowed Miles Today: <strong>{{ allowed_miles|round(3) }}</strong></p>
+            <p>Current Miles: <strong>{{ miles }}</strong></p>
+        </div>
+        <div class="surplus">
+            {{ surplus|round(3) }}
+        </div>
+        <form id="mileageForm">
+            <input type="number" id="currentMiles" placeholder="Enter current miles" required min="0" step="1">
+            <button type="submit">Submit</button>
+        </form>
+        <div class="message" id="message"></div>
+    </div>
+    <script>
+        document.getElementById('mileageForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const milesInput = document.getElementById('currentMiles');
+            const miles = parseFloat(milesInput.value);
+            const messageDiv = document.getElementById('message');
+
+            if (isNaN(miles) || miles < 0) {
+                messageDiv.innerHTML = '<div class="error-message">Please enter a valid, non-negative number.</div>';
+                return;
+            }
+
+            fetch('/files/mileage', {  // Correct endpoint
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ miles: miles })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    messageDiv.innerHTML = '<div class="success-message">Mileage updated successfully!</div>';
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = `<div class="error-message">${data.message}</div>`;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                messageDiv.innerHTML = '<div class="error-message">An error occurred. Please try again.</div>';
+            });
+        });
+    </script>
+</body>
+</html>

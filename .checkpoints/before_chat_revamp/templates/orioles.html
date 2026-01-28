@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #FD5A1E; /* Orioles Orange */
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        #videoPlayer {
+            width: 854px; /* 16:9 ratio from 480p */
+            height: 480px;
+            background-color: black;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 0 15px;
+            background-color: #FFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #DDD;
+        }
+        button:disabled {
+            background-color: #CCC;
+            cursor: not-allowed;
+        }
+        #videoStatus {
+            font-size: 18px;
+            color: #FFF;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <video id="videoPlayer" controls>
+            <source id="videoSource" src="{{ video_urls[0] }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        
+        <div class="controls">
+            <button id="prevBtn" onclick="changeVideo(-1)">Previous</button>
+            <span id="videoStatus">1/{{ video_urls|length }}</span>
+            <button id="nextBtn" onclick="changeVideo(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        const videoUrls = {{ video_urls|tojson }};
+        let currentVideoIndex = 0;
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoSource = document.getElementById('videoSource');
+        const videoStatus = document.getElementById('videoStatus');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function updateButtons() {
+            prevBtn.disabled = (currentVideoIndex === 0);
+            nextBtn.disabled = (currentVideoIndex === videoUrls.length - 1);
+        }
+
+        function updateVideoStatus() {
+            videoStatus.textContent = `${currentVideoIndex + 1}/${videoUrls.length}`;
+        }
+
+        function changeVideo(step) {
+            currentVideoIndex += step;
+            videoSource.src = videoUrls[currentVideoIndex];
+            videoPlayer.load();
+            videoPlayer.play();
+            updateButtons();
+            updateVideoStatus();
+        }
+
+        videoPlayer.onended = function() {
+            if (currentVideoIndex < videoUrls.length - 1) {
+                changeVideo(1);
+            }
+        };
+
+        updateButtons();
+        updateVideoStatus();
+    </script>
+</body>
+</html>

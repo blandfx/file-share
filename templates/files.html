@@ -1,0 +1,2373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://blandfx.com/assets/skull.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/files-icon.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='icons/files-icon.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Files">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Index of /files/</title>
+    <style>
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1em;
+            flex-wrap: wrap;
+            /* Allow wrapping on small screens by default */
+            gap: 0.5em;
+            /* Add gap between items */
+        }
+
+        .header-container h1 {
+            margin: 0;
+            /*flex-grow: 1;  Allow h1 to take space */
+            min-width: 100px;
+            /* Prevent h1 from becoming too small */
+            white-space: nowrap;
+            /* Prevent title from wrapping */
+        }
+
+        .search-container {
+            position: relative;
+            flex-grow: 2;
+            /* Allow search to take more space */
+            min-width: 150px;
+            /* Minimum width */
+            display: flex;
+            align-items: center;
+        }
+
+        .header-container input[type="text"] {
+            padding: 0.5em 32px 0.5em 0.5em;
+            /* Add right padding for X button */
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            width: 100%;
+            height: 28px;
+            /* Match button height */
+            box-sizing: border-box;
+            /* Include padding/border in height */
+        }
+
+        .search-clear-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(51, 51, 51, 0.9);
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 10;
+        }
+
+        .search-clear-btn:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-clear-btn.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .button-container {
+            display: flex;
+            /* gap: 1px; Adjusted spacing */
+            flex-shrink: 0;
+            /* Prevent buttons from shrinking */
+        }
+
+        /* Apply styles consistent with per-file buttons */
+        .button-container a button {
+            background-color: #4AA3DF;
+            /* Blue color */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            /* Match padding */
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            /* Match font size */
+            cursor: pointer;
+            border-radius: 5px;
+            /* Match border radius */
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            /* Match width */
+            height: 28px;
+            /* Match height */
+            box-sizing: border-box;
+        }
+
+        .button-container a button:hover {
+            background-color: #5BC0DE;
+            /* Lighter blue on hover */
+        }
+
+        .delete-button {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+
+
+
+        .rename-container {
+            display: flex;
+            align-items: center;
+            background-color: #2d2d2d;
+            border: 1px solid #4AA3DF;
+            border-radius: 5px;
+            padding: 1px;
+            flex-grow: 1;
+        }
+
+        .rename-container input[type="text"] {
+            background: transparent;
+            border: none;
+            color: #fff;
+            flex-grow: 1;
+            padding: 0.3em;
+            outline: none;
+            font-size: inherit;
+            font-family: inherit;
+        }
+
+        .file-extension {
+            color: #aaa;
+            padding-right: 8px;
+            white-space: nowrap;
+        }
+
+        .index-text {
+            display: inline;
+            /* Default display */
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 600px) {
+            .header-container h1 {
+                display: none;
+                /* Completely hide h1 on mobile */
+            }
+
+            .header-container {
+                flex-wrap: nowrap;
+                /* Prevent wrapping on mobile */
+            }
+
+            /* Allow overflow for collapsible menu */
+            .file-item {
+                overflow: visible !important;
+            }
+
+            /* Collapsible button group for file actions */
+            .file-details {
+                position: relative;
+            }
+
+            .file-actions-expanded {
+                position: absolute;
+                right: 0;
+                top: 100%;
+                background: #333;
+                border: 2px solid #4AA3DF;
+                border-radius: 5px;
+                padding: 10px;
+                z-index: 9999;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+                flex-direction: column;
+                gap: 8px;
+                min-width: 150px;
+                margin-top: 5px;
+                display: none;
+            }
+
+            .file-actions-expanded.show {
+                display: flex !important;
+            }
+
+            .file-actions-expanded button {
+                margin: 0;
+                width: 100%;
+                min-width: 120px;
+                justify-content: flex-start;
+                padding: 8px 12px;
+            }
+
+            .file-actions-expanded button i {
+                margin-right: 8px;
+            }
+
+            /* Hide desktop buttons on mobile */
+            .file-details>.rename-button,
+            .file-details>.copy-button,
+            .file-details>.download-button,
+            .file-details>.delete-button {
+                display: none;
+            }
+
+            .file-details>.file-size {
+                display: none;
+            }
+
+            .file-size-mobile {
+                display: block;
+                color: #aaa;
+                font-size: 12px;
+                margin-bottom: 8px;
+                text-align: center;
+            }
+
+            .collapse-toggle {
+                background-color: #17d09f !important;
+                position: relative;
+                display: flex !important;
+            }
+
+            .collapse-toggle:hover {
+                background-color: #5a6268 !important;
+            }
+
+            .collapse-toggle::after {
+                content: "⋯";
+                font-size: 18px;
+                font-weight: bold;
+            }
+
+            .collapse-toggle.expanded::after {
+                content: "✕";
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            margin: auto;
+            padding: 0;
+            width: 80%;
+            max-width: 900px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #modal-media-container img,
+        #modal-media-container video {
+            max-width: 100%;
+            max-height: 80vh;
+            display: block;
+            margin: 0 auto;
+            border-radius: 8px;
+        }
+
+        .close-button {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #bbb;
+            text-decoration: none;
+        }
+
+        /* Upload Modal Styles */
+        .upload-modal-content {
+            position: relative;
+            margin: auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--card-bg, #2d2d2d);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        .upload-modal-content h2 {
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .upload-modal-content p {
+            margin: 0 0 25px 0;
+            color: #ffffff;
+            opacity: 0.8;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .upload-modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-modal-btn {
+            background-color: #4AA3DF;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+
+        .upload-modal-btn:hover {
+            background-color: #5BC0DE;
+        }
+
+        .upload-modal-btn i {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Mobile adjustments for upload modal */
+        @media (max-width: 600px) {
+            .upload-modal-content {
+                width: calc(100% - 20px);
+                max-width: none;
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .upload-modal-content h2 {
+                font-size: 20px;
+            }
+
+            .upload-modal-content p {
+                font-size: 13px;
+                margin-bottom: 20px;
+            }
+
+            .upload-modal-btn {
+                padding: 12px 16px;
+                font-size: 15px;
+            }
+
+            .upload-modal-btn i {
+                font-size: 16px;
+            }
+        }
+
+        /* Apply styles consistent with per-file buttons */
+        .button-container a button,
+        .button-container button {
+            background-color: #4AA3DF;
+            /* Blue color */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            /* Match padding */
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            /* Match font size */
+            cursor: pointer;
+            border-radius: 5px;
+            /* Match border radius */
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            /* Match width */
+            height: 28px;
+            /* Match height */
+            box-sizing: border-box;
+        }
+
+        .button-container a button:hover,
+        .button-container button:hover {
+            background-color: #5BC0DE;
+            /* Lighter blue on hover */
+        }
+
+        .upload-button {
+            background-color: #4AA3DF;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 28px;
+            box-sizing: border-box;
+        }
+
+        .upload-button:hover {
+            background-color: #5BC0DE;
+        }
+
+        .delete-button {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-name>span {
+            cursor: pointer;
+        }
+
+        .file-name>span:hover {
+            color: #4AA3DF;
+            text-decoration: underline;
+        }
+
+        /* Drag and Drop Styles */
+        .drop-zone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(74, 163, 223, 0.1);
+            border: 3px dashed #4AA3DF;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            backdrop-filter: blur(5px);
+        }
+
+        .drop-zone.active {
+            display: flex;
+        }
+
+        .drop-zone-content {
+            text-align: center;
+            color: #4AA3DF;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .drop-zone-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .upload-progress {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            display: none;
+            min-width: 250px;
+        }
+
+        .upload-progress.show {
+            display: block;
+        }
+
+        .upload-progress.success {
+            background: #28a745;
+        }
+
+        .upload-progress.error {
+            background: #dc3545;
+        }
+
+        .upload-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .upload-progress-fill {
+            height: 100%;
+            background: #4AA3DF;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Hide collapsible elements on larger screens */
+        @media (min-width: 601px) {
+            .collapse-toggle {
+                display: none !important;
+            }
+
+            .file-actions-expanded {
+                display: none !important;
+            }
+
+            .file-size-mobile {
+                display: none !important;
+            }
+        }
+
+        /* Pull to refresh styles */
+        #pull-to-refresh {
+            position: fixed;
+            top: -60px;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #aaa;
+            z-index: 1001;
+            transition: transform 0.2s ease;
+            pointer-events: none;
+        }
+
+        #pull-to-refresh .refresh-icon {
+            margin-right: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        @media (max-width: 600px) {
+            #pull-to-refresh {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="pull-to-refresh">
+        <i class="fas fa-arrow-down refresh-icon"></i>
+        <span id="pull-to-refresh-text">Pull down to refresh</span>
+    </div>
+    <div class="header-container">
+        <h1 style="margin: 0 65px 0 0;"><span class="index-text">Index of </span>/files/</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search files..." onkeyup="filterFiles()"
+                oninput="toggleClearButton()">
+            <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()" title="Clear search">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="button-container">
+            <a href="/files/docs" class="docs-button" title="Documentation">
+                <button>
+                    <i class="fa fa-book"></i>
+                </button>
+            </a>
+            <a href="/files/blocked_devices" class="blocked-devices-button" title="Blocked Devices">
+                <button>
+                    <i class="fa fa-user-lock"></i>
+                </button>
+            </a>
+            <a href="/files/notes" class="new-note-button" title="New/Edit Note">
+                <button>
+                    <i class="fa fa-edit"></i>
+                </button>
+            </a>
+            <a href="/files/download" class="new-download-button" title="Download URL">
+                <button>
+                    <i class="fa fa-download"></i>
+                </button>
+            </a>
+            <button class="upload-button" title="Upload File" onclick="openUploadModal()">
+                <i class="fa fa-upload"></i>
+            </button>
+        </div>
+    </div>
+    <ul id="filesList">
+        {% for file in files %}
+        <li class="file-item">
+            <div class="file-name" title="{{ file.name }}">
+                {% if file.edit_url %}
+                <span data-filename="{{ file.name }}"
+                    onclick="window.location.href='{{ file.edit_url }}'">{{ file.name
+                    }}</span>
+                {% else %}
+                <span data-filename="{{ file.name }}" onclick="openModal('{{ file.name }}')">{{ file.name }}</span>
+                {% endif %}
+            </div>
+            <div class="file-details">
+                <div class="file-size">{{ format_size(file.size) }}</div>
+
+                <!-- Collapsible button for mobile -->
+                <button class="collapse-toggle" title="More Actions" onclick="toggleFileActions(this)">
+                </button>
+
+                <!-- Expanded actions menu for mobile -->
+                <div class="file-actions-expanded">
+                    <div class="file-size-mobile">{{ format_size(file.size) }}</div>
+                    <button class="rename-button-mobile" title="Rename File" style="background-color: #ffc107;">
+                        <i class="fas fa-edit"></i>
+                        Rename
+                    </button>
+                    <button class="copy-button-mobile" title="Copy Link"
+                        onclick="copyToClipboard('{{ file.name }}', this)">
+                        <i class="fas fa-copy"></i>
+                        Copy Link
+                    </button>
+                    <a href="/media/{{ file.name }}" download class="download-button-mobile" title="Download File">
+                        <button style="background-color: #28a745;">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                    </a>
+                    <button class="delete-button-mobile" style="background-color: #ff0707;" title="Delete File"
+                        onclick="deleteFile('{{ file.name }}', this)">
+                        <i class="fas fa-times"></i>
+                        Delete
+                    </button>
+                </div>
+
+                <!-- Desktop buttons -->
+                <button class="rename-button" title="Rename File" style="background-color: #ffc107;">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="copy-button" title="Copy Link" onclick="copyToClipboard('{{ file.name }}', this)">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <a href="/media/{{ file.name }}" download class="download-button" title="Download File">
+                    <button style="background-color: #28a745;">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </a>
+                <button class="delete-button" title="Delete File" onclick="deleteFile('{{ file.name }}', this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    <div id="fileCount" style="text-align: center; margin: 20px 0; color: #aaa; font-size: 0.9em;">
+        Total files: {{ files|length }}
+    </div>
+    <div id="mediaModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="modal-media-container"></div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="upload-modal-content">
+            <span class="close-button" onclick="closeUploadModal()">&times;</span>
+            <h2>Upload File</h2>
+            <p>Choose how you want to upload your file:</p>
+            <div class="upload-modal-buttons">
+                <button class="upload-modal-btn" onclick="selectFileFromFilesystem()">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Choose File from Filesystem</span>
+                </button>
+                <button class="upload-modal-btn" onclick="pasteFromClipboard()">
+                    <i class="fas fa-clipboard"></i>
+                    <span>Use File from Clipboard</span>
+                </button>
+            </div>
+            <input type="file" id="fileInput" multiple>
+        </div>
+    </div>
+
+    <!-- Drag and Drop Zone -->
+    <div id="dropZone" class="drop-zone">
+        <div class="drop-zone-content">
+            <div class="drop-zone-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <div>Drop files here to upload</div>
+        </div>
+    </div>
+
+    <!-- Upload Progress -->
+    <div id="uploadProgress" class="upload-progress">
+        <div id="uploadStatus">Uploading...</div>
+        <div class="upload-progress-bar">
+            <div id="uploadProgressFill" class="upload-progress-fill"></div>
+        </div>
+    </div>
+    <script>
+        function copyToClipboard(path, btnElement) {
+            const fullUrl = `${window.location.origin}/media/${path}`;
+            navigator.clipboard.writeText(fullUrl).then(function () {
+                btnElement.classList.add("copy-success");
+                setTimeout(() => {
+                    btnElement.classList.remove("copy-success");
+                }, 1000);
+            }, function (err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        async function createVideoElement(fileUrl) {
+            const modal = document.getElementById('mediaModal');
+            const container = document.getElementById('modal-media-container');
+
+            try {
+                // First, try to get duration from headers
+                console.log('Fetching video duration from headers...');
+                const response = await fetch(fileUrl, { method: 'HEAD' });
+                const duration = response.headers.get('X-Video-Duration') || response.headers.get('X-Duration');
+
+                if (duration && !isNaN(duration)) {
+                    const durationValue = parseFloat(duration);
+                    const hours = Math.floor(durationValue / 3600);
+                    const minutes = Math.floor((durationValue % 3600) / 60);
+                    const seconds = Math.floor(durationValue % 60);
+                    const formattedDuration = hours > 0
+                        ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+                        : `${minutes}:${String(seconds).padStart(2, '0')}`;
+
+                    console.log(`Video duration from header: ${durationValue}s (${formattedDuration})`);
+
+                    // Create video with custom controls that show proper duration
+                    container.innerHTML = `
+                    <div style="position: relative; background: #000;">
+                        <video id="transcoded-video" autoplay style="width: 100%; height: auto; display: block;">
+                            <source src="${fileUrl}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        
+                        <!-- Custom video controls -->
+                        <div id="custom-controls" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 10px; display: flex; align-items: center; gap: 10px; transition: opacity 0.3s; opacity: 1;">
+                            <button id="play-pause" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">⏸️</button>
+                            
+                            <span id="current-time" style="color: white; font-size: 12px; min-width: 45px;">0:00</span>
+                            
+                            <div id="progress-container" style="flex: 1; height: 6px; background: rgba(255,255,255,0.3); border-radius: 3px; cursor: pointer; position: relative;">
+                                <div id="progress-bar" style="height: 100%; background: #ff4444; border-radius: 3px; width: 0%; transition: width 0.1s;"></div>
+                                <div id="buffer-bar" style="position: absolute; top: 0; height: 100%; background: rgba(255,255,255,0.5); border-radius: 3px; width: 0%;"></div>
+                                <div id="time-tooltip" style="position: absolute; bottom: 12px; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; pointer-events: none; display: none; transform: translateX(-50%);"></div>
+                            </div>
+                            
+                            <span id="total-time" style="color: white; font-size: 12px; min-width: 45px;">${formattedDuration}</span>
+                            
+                            <button id="fullscreen" style="background: none; border: none; color: white; font-size: 16px; cursor: pointer;">⛶</button>
+                        </div>
+
+                    </div>
+                `;
+
+                    // Store the original file URL for seeking
+                    const originalFileUrl = fileUrl;
+
+                    // Track seek offset for accurate time display
+                    let seekOffset = 0;
+
+                    // Add seek function that requests new transcoding stream
+                    window.seekToPosition = function (seconds) {
+                        const video = document.getElementById('transcoded-video');
+                        if (video) {
+                            console.log(`Seeking to ${seconds}s - requesting new transcoding stream`);
+
+                            // Update seek offset for accurate time display
+                            seekOffset = seconds;
+
+                            // Show seeking indicator in console
+                            console.log('⏳ Seeking in progress...');
+
+                            // Create new video source with seek time parameter using the original file URL
+                            const url = new URL(originalFileUrl, window.location.origin);
+                            url.searchParams.set('t', seconds);
+
+                            // Replace video source
+                            const newUrl = url.toString();
+                            console.log(`Setting new video source: ${newUrl}`);
+                            video.src = newUrl;
+
+                            // Add error handling
+                            video.onerror = function (e) {
+                                console.error('Video loading error:', e);
+                                console.error('Video error code:', this.error ? this.error.code : 'unknown');
+                                console.log('❌ Seek failed');
+                            };
+
+                            video.onloadstart = function () {
+                                console.log('Video load started');
+                            };
+
+                            video.onloadeddata = function () {
+                                console.log('Video data loaded successfully');
+                            };
+
+                            video.load(); // Force reload with new source
+                        }
+                    };
+
+                    // Initialize custom video controls
+                    const video = document.getElementById('transcoded-video');
+                    const playPauseBtn = document.getElementById('play-pause');
+                    const currentTimeSpan = document.getElementById('current-time');
+                    const progressContainer = document.getElementById('progress-container');
+                    const progressBar = document.getElementById('progress-bar');
+                    const bufferBar = document.getElementById('buffer-bar');
+                    const fullscreenBtn = document.getElementById('fullscreen');
+                    const timeTooltip = document.getElementById('time-tooltip');
+
+                    // Add VLC fallback functionality
+                    let hasTriedVlcFallback = false;
+
+                    function showVlcFallback() {
+                        if (hasTriedVlcFallback) return;
+                        hasTriedVlcFallback = true;
+
+                        const vlcContainer = document.createElement('div');
+                        vlcContainer.id = 'vlc-fallback';
+                        vlcContainer.style.cssText = `
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(0, 0, 0, 0.9);
+                        color: white;
+                        padding: 20px;
+                        border-radius: 10px;
+                        text-align: center;
+                        z-index: 1001;
+                        max-width: 400px;
+                        font-family: Arial, sans-serif;
+                    `;
+
+                        vlcContainer.innerHTML = `
+                        <div style="margin-bottom: 20px;">
+                            <i class="fas fa-exclamation-triangle" style="color: #ff9800; font-size: 32px; margin-bottom: 15px; display: block;"></i>
+                            <h3 style="margin: 0 0 15px 0; color: #fff; font-size: 20px;">Video Playback Issue</h3>
+                            <p style="margin: 0 0 20px 0; color: #ccc; line-height: 1.5; font-size: 15px;">
+                                This video format may not be compatible with your browser. 
+                                Would you like to open it in VLC for better compatibility?
+                            </p>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                            <button id="vlc-open" style="
+                                background: #ff6600;
+                                color: white;
+                                border: none;
+                                padding: 14px 20px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 16px;
+                                font-weight: 500;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 10px;
+                                min-height: 48px;
+                                transition: background-color 0.2s;
+                                width: 100%;
+                            " onmouseover="this.style.backgroundColor='#e55a00'" onmouseout="this.style.backgroundColor='#ff6600'">
+                                <i class="fas fa-play"></i>
+                                Open in VLC
+                            </button>
+                            <button id="vlc-copy" style="
+                                background: #4CAF50;
+                                color: white;
+                                border: none;
+                                padding: 14px 20px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 16px;
+                                font-weight: 500;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 10px;
+                                min-height: 48px;
+                                transition: background-color 0.2s;
+                                width: 100%;
+                            " onmouseover="this.style.backgroundColor='#45a049'" onmouseout="this.style.backgroundColor='#4CAF50'">
+                                <i class="fas fa-copy"></i>
+                                Copy URL
+                            </button>
+                            <button id="vlc-dismiss" style="
+                                background: #666;
+                                color: white;
+                                border: none;
+                                padding: 12px 20px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 14px;
+                                font-weight: 500;
+                                min-height: 40px;
+                                transition: background-color 0.2s;
+                                width: 100%;
+                            " onmouseover="this.style.backgroundColor='#555'" onmouseout="this.style.backgroundColor='#666'">
+                                Dismiss
+                            </button>
+                        </div>
+                        <div style="text-align: center; font-size: 13px; color: #999; line-height: 1.4;">
+                            <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                            VLC app required for mobile devices
+                        </div>
+                    `;
+
+                        document.body.appendChild(vlcContainer);
+
+                        // Button event handlers
+                        document.getElementById('vlc-open').addEventListener('click', () => {
+                            // Extract filename from fileUrl (/media/filename) and create proper media URL
+                            const filename = fileUrl.replace('/media/', '');
+                            const mediaUrl = `${window.location.origin}/media/${filename}`;
+                            const vlcUrl = `vlc://${mediaUrl}`;
+                            console.log('Attempting to open VLC with URL:', vlcUrl);
+
+                            // Try VLC protocol first
+                            window.location.href = vlcUrl;
+
+                            // Fallback: if VLC protocol doesn't work, try direct URL after a short delay
+                            setTimeout(() => {
+                                if (confirm('VLC didn\'t open automatically. Copy the URL to paste into VLC manually?')) {
+                                    navigator.clipboard.writeText(mediaUrl).then(() => {
+                                        alert('URL copied to clipboard! Open VLC and paste this URL.');
+                                    });
+                                }
+                            }, 2000);
+
+                            vlcContainer.remove();
+                        });
+
+                        document.getElementById('vlc-copy').addEventListener('click', () => {
+                            // Extract filename from fileUrl and create proper media URL like copy link functionality
+                            const filename = fileUrl.replace('/media/', '');
+                            const fullUrl = `${window.location.origin}/media/${filename}`;
+                            navigator.clipboard.writeText(fullUrl).then(() => {
+                                alert('Video URL copied to clipboard! You can paste this into VLC.');
+                                vlcContainer.remove();
+                            }).catch(() => {
+                                // Fallback for older browsers
+                                prompt('Copy this URL to open in VLC:', fullUrl);
+                                vlcContainer.remove();
+                            });
+                        });
+
+                        document.getElementById('vlc-dismiss').addEventListener('click', () => {
+                            vlcContainer.remove();
+                        });
+                    }
+
+                    // Add error handling for video playback failures
+                    video.addEventListener('error', function (e) {
+                        console.log('Video error detected:', e);
+                        console.log('Error code:', this.error ? this.error.code : 'unknown');
+
+                        // Show VLC fallback after a short delay to ensure the error is real
+                        setTimeout(() => {
+                            if (this.error && !hasTriedVlcFallback) {
+                                showVlcFallback();
+                            }
+                        }, 1000);
+                    });
+
+                    // Also check for loading failures
+                    video.addEventListener('loadstart', function () {
+                        // Reset the fallback flag for new videos
+                        hasTriedVlcFallback = false;
+                    });
+
+                    // Check if video can actually play the format
+                    video.addEventListener('canplay', function () {
+                        console.log('Video can play successfully');
+                    });
+
+                    // If video stalls for too long, offer VLC option
+                    let stallTimeout;
+                    video.addEventListener('waiting', function () {
+                        console.log('Video is buffering/waiting...');
+                        stallTimeout = setTimeout(() => {
+                            if (this.readyState < 3 && !hasTriedVlcFallback) { // HAVE_FUTURE_DATA
+                                console.log('Video appears to be stalled, offering VLC fallback');
+                                showVlcFallback();
+                            }
+                        }, 10000); // Wait 10 seconds before offering VLC
+                    });
+
+                    video.addEventListener('playing', function () {
+                        clearTimeout(stallTimeout);
+                    });
+
+                    video.addEventListener('canplaythrough', function () {
+                        clearTimeout(stallTimeout);
+                    });
+
+                    // Format time for display
+                    function formatTime(seconds) {
+                        const mins = Math.floor(seconds / 60);
+                        const secs = Math.floor(seconds % 60);
+                        return `${mins}:${String(secs).padStart(2, '0')}`;
+                    }
+
+                    // Play/Pause functionality
+                    playPauseBtn.addEventListener('click', () => {
+                        if (video.paused) {
+                            video.play();
+                            playPauseBtn.textContent = '⏸️';
+                        } else {
+                            video.pause();
+                            playPauseBtn.textContent = '▶️';
+                        }
+                    });
+
+                    // Update progress bar and time display
+                    video.addEventListener('timeupdate', () => {
+                        const current = video.currentTime + seekOffset; // Add seek offset for accurate time
+                        const progress = (current / durationValue) * 100;
+
+                        progressBar.style.width = progress + '%';
+                        currentTimeSpan.textContent = formatTime(current);
+                    });
+
+                    // Update buffer bar
+                    video.addEventListener('progress', () => {
+                        if (video.buffered.length > 0) {
+                            const buffered = video.buffered.end(video.buffered.length - 1) + seekOffset;
+                            const bufferProgress = (buffered / durationValue) * 100;
+                            bufferBar.style.width = bufferProgress + '%';
+                        }
+                    });
+
+                    // Progress bar seeking
+                    progressContainer.addEventListener('click', (e) => {
+                        const rect = progressContainer.getBoundingClientRect();
+                        const clickX = e.clientX - rect.left;
+                        const clickPercent = clickX / rect.width;
+                        const seekTime = clickPercent * durationValue;
+
+                        console.log(`Progress bar clicked - seeking to ${seekTime}s`);
+                        seekToPosition(seekTime);
+                    });
+
+                    // Timeline hover tooltip
+                    progressContainer.addEventListener('mousemove', (e) => {
+                        const rect = progressContainer.getBoundingClientRect();
+                        const hoverX = e.clientX - rect.left;
+                        const hoverPercent = Math.max(0, Math.min(1, hoverX / rect.width));
+                        const hoverTime = hoverPercent * durationValue;
+
+                        // Update tooltip content and position
+                        timeTooltip.textContent = formatTime(hoverTime);
+                        timeTooltip.style.left = hoverX + 'px';
+                        timeTooltip.style.display = 'block';
+                    });
+
+                    progressContainer.addEventListener('mouseleave', () => {
+                        timeTooltip.style.display = 'none';
+                    });
+
+                    // Fullscreen functionality
+                    fullscreenBtn.addEventListener('click', () => {
+                        if (video.requestFullscreen) {
+                            video.requestFullscreen();
+                        } else if (video.webkitRequestFullscreen) {
+                            video.webkitRequestFullscreen();
+                        } else if (video.msRequestFullscreen) {
+                            video.msRequestFullscreen();
+                        }
+                    });
+
+                    // Handle play/pause events
+                    video.addEventListener('play', () => playPauseBtn.textContent = '⏸️');
+                    video.addEventListener('pause', () => playPauseBtn.textContent = '▶️');
+
+                    // Auto-hide controls like native video players
+                    const controls = document.getElementById('custom-controls');
+                    let controlsTimeout;
+
+                    function showControls() {
+                        controls.style.opacity = '1';
+                        clearTimeout(controlsTimeout);
+                        controlsTimeout = setTimeout(() => {
+                            if (!video.paused) controls.style.opacity = '0.2';
+                        }, 3000);
+                    }
+
+                    function hideControls() {
+                        if (!video.paused) controls.style.opacity = '0.2';
+                    }
+
+                    // Show controls on mouse movement or touch
+                    const videoContainer = video.parentElement;
+                    videoContainer.addEventListener('mousemove', showControls);
+                    videoContainer.addEventListener('mouseleave', hideControls);
+                    videoContainer.addEventListener('touchstart', showControls);
+                    video.addEventListener('play', () => setTimeout(hideControls, 3000));
+                    video.addEventListener('pause', showControls);
+
+                    // Handle seeking when user tries to seek beyond transcoded content
+                    video.addEventListener('seeking', function () {
+                        const seekTime = this.currentTime + seekOffset; // Include current offset
+                        const videoDuration = this.duration;
+
+                        // If seeking beyond what's been transcoded, start new transcoding
+                        if (this.currentTime > videoDuration * 0.9 && videoDuration < durationValue * 0.9) {
+                            console.log(`Video element seek beyond transcoded content - requesting new stream`);
+                            seekToPosition(seekTime);
+                        }
+                    });
+
+                } else {
+                    console.log('No duration header found, using default behavior');
+                    // Create normal video element
+                    const mediaElement = document.createElement('video');
+                    mediaElement.src = fileUrl;
+                    mediaElement.controls = true;
+                    mediaElement.autoplay = true;
+
+                    // Add VLC fallback for regular video element too
+                    let hasTriedVlcFallback = false;
+
+                    function showVlcFallback() {
+                        if (hasTriedVlcFallback) return;
+                        hasTriedVlcFallback = true;
+
+                        const vlcContainer = document.createElement('div');
+                        vlcContainer.id = 'vlc-fallback';
+                        vlcContainer.style.cssText = `
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(0, 0, 0, 0.9);
+                        color: white;
+                        padding: 20px;
+                        border-radius: 10px;
+                        text-align: center;
+                        z-index: 1001;
+                        max-width: 400px;
+                        font-family: Arial, sans-serif;
+                    `;
+
+                        vlcContainer.innerHTML = `
+                        <div style="margin-bottom: 20px;">
+                            <i class="fas fa-exclamation-triangle" style="color: #ff9800; font-size: 32px; margin-bottom: 15px; display: block;"></i>
+                            <h3 style="margin: 0 0 15px 0; color: #fff; font-size: 20px;">Video Playback Issue</h3>
+                            <p style="margin: 0 0 20px 0; color: #ccc; line-height: 1.5; font-size: 15px;">
+                                This video format may not be compatible with your browser. 
+                                Would you like to open it in VLC for better compatibility?
+                            </p>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                            <button id="vlc-open-simple" style="
+                                background: #ff6600;
+                                color: white;
+                                border: none;
+                                padding: 14px 20px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 16px;
+                                font-weight: 500;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 10px;
+                                min-height: 48px;
+                                transition: background-color 0.2s;
+                                width: 100%;
+                            " onmouseover="this.style.backgroundColor='#e55a00'" onmouseout="this.style.backgroundColor='#ff6600'">
+                                <i class="fas fa-play"></i>
+                                Open in VLC
+                            </button>
+                            <button id="vlc-copy-simple" style="
+                                background: #4CAF50;
+                                color: white;
+                                border: none;
+                                padding: 14px 20px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 16px;
+                                font-weight: 500;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 10px;
+                                min-height: 48px;
+                                transition: background-color 0.2s;
+                                width: 100%;
+                            " onmouseover="this.style.backgroundColor='#45a049'" onmouseout="this.style.backgroundColor='#4CAF50'">
+                                <i class="fas fa-copy"></i>
+                                Copy URL
+                            </button>
+                            <button id="vlc-dismiss-simple" style="
+                                background: #666;
+                                color: white;
+                                border: none;
+                                padding: 12px 20px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-size: 14px;
+                                font-weight: 500;
+                                min-height: 40px;
+                                transition: background-color 0.2s;
+                                width: 100%;
+                            " onmouseover="this.style.backgroundColor='#555'" onmouseout="this.style.backgroundColor='#666'">
+                                Dismiss
+                            </button>
+                        </div>
+                        <div style="text-align: center; font-size: 13px; color: #999; line-height: 1.4;">
+                            <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                            VLC app required for mobile devices
+                        </div>
+                    `;
+
+                        document.body.appendChild(vlcContainer);
+
+                        // Button event handlers
+                        document.getElementById('vlc-open-simple').addEventListener('click', () => {
+                            // Extract filename from fileUrl (/media/filename) and create proper media URL
+                            const filename = fileUrl.replace('/media/', '');
+                            const mediaUrl = `${window.location.origin}/media/${filename}`;
+                            const vlcUrl = `vlc://${mediaUrl}`;
+                            console.log('Attempting to open VLC with URL:', vlcUrl);
+
+                            // Try VLC protocol first
+                            window.location.href = vlcUrl;
+
+                            // Fallback: if VLC protocol doesn't work, try direct URL after a short delay
+                            setTimeout(() => {
+                                if (confirm('VLC didn\'t open automatically. Copy the URL to paste into VLC manually?')) {
+                                    navigator.clipboard.writeText(mediaUrl).then(() => {
+                                        alert('URL copied to clipboard! Open VLC and paste this URL.');
+                                    });
+                                }
+                            }, 2000);
+
+                            vlcContainer.remove();
+                        });
+
+                        document.getElementById('vlc-copy-simple').addEventListener('click', () => {
+                            // Extract filename from fileUrl and create proper media URL like copy link functionality
+                            const filename = fileUrl.replace('/media/', '');
+                            const fullUrl = `${window.location.origin}/media/${filename}`;
+                            navigator.clipboard.writeText(fullUrl).then(() => {
+                                alert('Video URL copied to clipboard! You can paste this into VLC.');
+                                vlcContainer.remove();
+                            }).catch(() => {
+                                // Fallback for older browsers
+                                prompt('Copy this URL to open in VLC:', fullUrl);
+                                vlcContainer.remove();
+                            });
+                        });
+
+                        document.getElementById('vlc-dismiss-simple').addEventListener('click', () => {
+                            vlcContainer.remove();
+                        });
+                    }
+
+                    // Add error handling for video playback failures
+                    mediaElement.addEventListener('error', function (e) {
+                        console.log('Video error detected:', e);
+                        console.log('Error code:', this.error ? this.error.code : 'unknown');
+
+                        // Show VLC fallback after a short delay to ensure the error is real
+                        setTimeout(() => {
+                            if (this.error && !hasTriedVlcFallback) {
+                                showVlcFallback();
+                            }
+                        }, 1000);
+                    });
+
+                    // Also check for loading failures
+                    mediaElement.addEventListener('loadstart', function () {
+                        // Reset the fallback flag for new videos
+                        hasTriedVlcFallback = false;
+                    });
+
+                    // If video stalls for too long, offer VLC option
+                    let stallTimeout;
+                    mediaElement.addEventListener('waiting', function () {
+                        console.log('Video is buffering/waiting...');
+                        stallTimeout = setTimeout(() => {
+                            if (this.readyState < 3 && !hasTriedVlcFallback) { // HAVE_FUTURE_DATA
+                                console.log('Video appears to be stalled, offering VLC fallback');
+                                showVlcFallback();
+                            }
+                        }, 10000); // Wait 10 seconds before offering VLC
+                    });
+
+                    mediaElement.addEventListener('playing', function () {
+                        clearTimeout(stallTimeout);
+                    });
+
+                    mediaElement.addEventListener('canplaythrough', function () {
+                        clearTimeout(stallTimeout);
+                    });
+
+                    container.innerHTML = '';
+                    container.appendChild(mediaElement);
+                }
+
+                modal.style.display = 'block';
+
+            } catch (error) {
+                console.log('Error fetching duration headers, falling back to normal video element:', error);
+
+                // Fallback: create normal video element
+                const mediaElement = document.createElement('video');
+                mediaElement.src = fileUrl;
+                mediaElement.controls = true;
+                mediaElement.autoplay = true;
+
+                // Add VLC fallback for catch block fallback too
+                let hasTriedVlcFallback = false;
+
+                function showVlcFallback() {
+                    if (hasTriedVlcFallback) return;
+                    hasTriedVlcFallback = true;
+
+                    const vlcContainer = document.createElement('div');
+                    vlcContainer.id = 'vlc-fallback';
+                    vlcContainer.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0, 0, 0, 0.9);
+                    color: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    text-align: center;
+                    z-index: 1001;
+                    max-width: 400px;
+                    font-family: Arial, sans-serif;
+                `;
+
+                    vlcContainer.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <i class="fas fa-exclamation-triangle" style="color: #ff9800; font-size: 32px; margin-bottom: 15px; display: block;"></i>
+                        <h3 style="margin: 0 0 15px 0; color: #fff; font-size: 20px;">Video Playback Issue</h3>
+                        <p style="margin: 0 0 20px 0; color: #ccc; line-height: 1.5; font-size: 15px;">
+                            This video format may not be compatible with your browser. 
+                            Would you like to open it in VLC for better compatibility?
+                        </p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                        <button id="vlc-open-fallback" style="
+                            background: #ff6600;
+                            color: white;
+                            border: none;
+                            padding: 14px 20px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            font-weight: 500;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 10px;
+                            min-height: 48px;
+                            transition: background-color 0.2s;
+                            width: 100%;
+                        " onmouseover="this.style.backgroundColor='#e55a00'" onmouseout="this.style.backgroundColor='#ff6600'">
+                            <i class="fas fa-play"></i>
+                            Open in VLC
+                        </button>
+                        <button id="vlc-copy-fallback" style="
+                            background: #4CAF50;
+                            color: white;
+                            border: none;
+                            padding: 14px 20px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            font-weight: 500;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 10px;
+                            min-height: 48px;
+                            transition: background-color 0.2s;
+                            width: 100%;
+                        " onmouseover="this.style.backgroundColor='#45a049'" onmouseout="this.style.backgroundColor='#4CAF50'">
+                            <i class="fas fa-copy"></i>
+                            Copy URL
+                        </button>
+                        <button id="vlc-dismiss-fallback" style="
+                            background: #666;
+                            color: white;
+                            border: none;
+                            padding: 12px 20px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            font-weight: 500;
+                            min-height: 40px;
+                            transition: background-color 0.2s;
+                            width: 100%;
+                        " onmouseover="this.style.backgroundColor='#555'" onmouseout="this.style.backgroundColor='#666'">
+                            Dismiss
+                        </button>
+                    </div>
+                    <div style="text-align: center; font-size: 13px; color: #999; line-height: 1.4;">
+                        <i class="fas fa-info-circle" style="margin-right: 6px;"></i>
+                        VLC app required for mobile devices
+                    </div>
+                `;
+
+                    document.body.appendChild(vlcContainer);
+
+                    // Button event handlers
+                    document.getElementById('vlc-open-fallback').addEventListener('click', () => {
+                        // Extract filename from fileUrl (/media/filename) and create proper media URL
+                        const filename = fileUrl.replace('/media/', '');
+                        const mediaUrl = `${window.location.origin}/media/${filename}`;
+                        const vlcUrl = `vlc://${mediaUrl}`;
+                        console.log('Attempting to open VLC with URL:', vlcUrl);
+
+                        // Try VLC protocol first
+                        window.location.href = vlcUrl;
+
+                        // Fallback: if VLC protocol doesn't work, try direct URL after a short delay
+                        setTimeout(() => {
+                            if (confirm('VLC didn\'t open automatically. Copy the URL to paste into VLC manually?')) {
+                                navigator.clipboard.writeText(mediaUrl).then(() => {
+                                    alert('URL copied to clipboard! Open VLC and paste this URL.');
+                                });
+                            }
+                        }, 2000);
+
+                        vlcContainer.remove();
+                    });
+
+                    document.getElementById('vlc-copy-fallback').addEventListener('click', () => {
+                        // Extract filename from fileUrl and create proper media URL like copy link functionality
+                        const filename = fileUrl.replace('/media/', '');
+                        const fullUrl = `${window.location.origin}/media/${filename}`;
+                        navigator.clipboard.writeText(fullUrl).then(() => {
+                            alert('Video URL copied to clipboard! You can paste this into VLC.');
+                            vlcContainer.remove();
+                        }).catch(() => {
+                            // Fallback for older browsers
+                            prompt('Copy this URL to open in VLC:', fullUrl);
+                            vlcContainer.remove();
+                        });
+                    });
+
+                    document.getElementById('vlc-dismiss-fallback').addEventListener('click', () => {
+                        vlcContainer.remove();
+                    });
+                }
+
+                // Add error handling for video playback failures
+                mediaElement.addEventListener('error', function (e) {
+                    console.log('Video error detected:', e);
+                    console.log('Error code:', this.error ? this.error.code : 'unknown');
+
+                    // Show VLC fallback after a short delay to ensure the error is real
+                    setTimeout(() => {
+                        if (this.error && !hasTriedVlcFallback) {
+                            showVlcFallback();
+                        }
+                    }, 1000);
+                });
+
+                // Also check for loading failures
+                mediaElement.addEventListener('loadstart', function () {
+                    // Reset the fallback flag for new videos
+                    hasTriedVlcFallback = false;
+                });
+
+                // If video stalls for too long, offer VLC option
+                let stallTimeout;
+                mediaElement.addEventListener('waiting', function () {
+                    console.log('Video is buffering/waiting...');
+                    stallTimeout = setTimeout(() => {
+                        if (this.readyState < 3 && !hasTriedVlcFallback) { // HAVE_FUTURE_DATA
+                            console.log('Video appears to be stalled, offering VLC fallback');
+                            showVlcFallback();
+                        }
+                    }, 10000); // Wait 10 seconds before offering VLC
+                });
+
+                mediaElement.addEventListener('playing', function () {
+                    clearTimeout(stallTimeout);
+                });
+
+                mediaElement.addEventListener('canplaythrough', function () {
+                    clearTimeout(stallTimeout);
+                });
+
+                container.innerHTML = '';
+                container.appendChild(mediaElement);
+                modal.style.display = 'block';
+            }
+        }
+
+        function openModal(filename) {
+            const modal = document.getElementById('mediaModal');
+            const container = document.getElementById('modal-media-container');
+            const fileUrl = `/media/${filename}`;
+            const fileExtension = filename.split('.').pop().toLowerCase();
+
+            let mediaElement;
+
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'ico'].includes(fileExtension)) {
+                mediaElement = document.createElement('img');
+                mediaElement.src = fileUrl;
+
+                // Zoom and Pan variables
+                let scale = 1;
+                let translateX = 0;
+                let translateY = 0;
+                let isDragging = false;
+                let startX, startY;
+
+                mediaElement.style.transition = 'transform 0.1s ease-out';
+                mediaElement.style.cursor = 'zoom-in';
+                // Ensure image fits initially
+                mediaElement.style.maxWidth = '100%';
+                mediaElement.style.maxHeight = '80vh';
+
+                const updateTransform = () => {
+                    mediaElement.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+                };
+
+                mediaElement.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    
+                    // Zoom logic
+                    const delta = Math.sign(e.deltaY) * -0.1;
+                    const newScale = Math.min(Math.max(0.5, scale + delta), 5); // Limit zoom from 0.5x to 5x
+                    
+                    if (newScale !== scale) {
+                        scale = newScale;
+                        // Reset pan if zoomed out to original size or smaller
+                        if (scale <= 1) {
+                            translateX = 0;
+                            translateY = 0;
+                        }
+                        updateTransform();
+                        mediaElement.style.cursor = scale > 1 ? 'grab' : 'zoom-in';
+                    }
+                });
+
+                // Pan logic
+                mediaElement.addEventListener('mousedown', function(e) {
+                    if (scale > 1) {
+                        isDragging = true;
+                        startX = e.clientX - translateX;
+                        startY = e.clientY - translateY;
+                        mediaElement.style.cursor = 'grabbing';
+                        e.preventDefault();
+                    }
+                });
+
+                const mouseMoveHandler = function(e) {
+                    if (isDragging && scale > 1) {
+                        e.preventDefault();
+                        translateX = e.clientX - startX;
+                        translateY = e.clientY - startY;
+                        updateTransform();
+                    }
+                };
+
+                const mouseUpHandler = function() {
+                    if (isDragging) {
+                        isDragging = false;
+                        mediaElement.style.cursor = 'grab';
+                    }
+                };
+
+                window.addEventListener('mousemove', mouseMoveHandler);
+                window.addEventListener('mouseup', mouseUpHandler);
+
+                // Store cleanup function on the modal so closeModal can call it
+                modal.cleanupImageZoom = () => {
+                    window.removeEventListener('mousemove', mouseMoveHandler);
+                    window.removeEventListener('mouseup', mouseUpHandler);
+                    delete modal.cleanupImageZoom;
+                };
+
+            } else if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'm4v'].includes(fileExtension)) {
+                // For video files, createVideoElement handles everything internally
+                createVideoElement(fileUrl);
+                return; // Exit early since createVideoElement handles modal display
+            } else {
+                // Fallback for unsupported types
+                window.open(fileUrl, '_blank');
+                return;
+            }
+
+            container.innerHTML = '';
+            container.appendChild(mediaElement);
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('mediaModal');
+            const container = document.getElementById('modal-media-container');
+            
+            // Cleanup zoom event listeners if they exist
+            if (modal.cleanupImageZoom) {
+                modal.cleanupImageZoom();
+            }
+
+            modal.style.display = 'none';
+            container.innerHTML = ''; // Clear content to stop media playback
+        }
+
+        function filterFiles() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const nodes = document.getElementById('filesList').getElementsByTagName('li');
+            let visibleCount = 0;
+
+            for (let i = 0; i < nodes.length; i++) {
+                let fileName = nodes[i].getElementsByClassName('file-name')[0].textContent || nodes[i].getElementsByClassName('file-name')[0].innerText;
+                if (fileName.toLowerCase().indexOf(filter) > -1) {
+                    nodes[i].style.display = "";
+                    visibleCount++;
+                } else {
+                    nodes[i].style.display = "none";
+                }
+            }
+
+            const fileCountElement = document.getElementById('fileCount');
+            if (fileCountElement) {
+                fileCountElement.textContent = `Total files: ${visibleCount}`;
+            }
+        }
+
+        function toggleClearButton() {
+            const input = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('searchClearBtn');
+
+            if (input.value.length > 0) {
+                clearBtn.classList.add('visible');
+            } else {
+                clearBtn.classList.remove('visible');
+            }
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('searchClearBtn');
+
+            input.value = '';
+            clearBtn.classList.remove('visible');
+            input.focus(); // Put cursor back in the input field
+            filterFiles(); // Re-filter to show all files
+        }
+
+        function deleteFile(filename, btnElement) {
+            if (confirm(`Are you sure you want to delete "${filename}"?`)) {
+                fetch(`/files/delete/${filename}`, {
+                    method: 'DELETE',
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove the file item from the list
+                            btnElement.closest('.file-item').remove();
+                        } else {
+                            alert(`Error deleting file: ${data.error}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An unexpected error occurred while deleting the file.');
+                    });
+            }
+        }
+
+
+
+        // Global functions for mobile collapsible buttons
+        function toggleFileActions(button) {
+            console.log('toggleFileActions called'); // Debug log
+            const expandedMenu = button.nextElementSibling;
+            console.log('expandedMenu:', expandedMenu); // Debug log
+
+            if (!expandedMenu) {
+                console.error('Expanded menu not found');
+                return;
+            }
+
+            const isExpanded = expandedMenu.classList.contains('show');
+            console.log('isExpanded:', isExpanded); // Debug log
+
+            // Close all other expanded menus
+            document.querySelectorAll('.file-actions-expanded.show').forEach(menu => {
+                if (menu !== expandedMenu) {
+                    menu.classList.remove('show');
+                    const prevButton = menu.previousElementSibling;
+                    if (prevButton && prevButton.classList.contains('collapse-toggle')) {
+                        prevButton.classList.remove('expanded');
+                    }
+                }
+            });
+
+            // Toggle current menu
+            if (isExpanded) {
+                expandedMenu.classList.remove('show');
+                button.classList.remove('expanded');
+                console.log('Menu closed');
+            } else {
+                expandedMenu.classList.add('show');
+                button.classList.add('expanded');
+                console.log('Menu opened');
+
+                // Debug: Check if menu is visible
+                setTimeout(() => {
+                    const rect = expandedMenu.getBoundingClientRect();
+                    console.log('Menu position:', rect);
+                    console.log('Menu computed style:', window.getComputedStyle(expandedMenu).display);
+                    console.log('Menu parent:', expandedMenu.parentElement);
+                }, 100);
+            }
+        }
+
+        // Global rename functions (accessible from inline handlers and event listeners)
+        function startRename(element, oldName) {
+            const lastDotIndex = oldName.lastIndexOf('.');
+            let nameWithoutExt = oldName;
+            let extension = '';
+
+            if (lastDotIndex !== -1 && lastDotIndex > 0) { // Ensure dot is not the first character
+                nameWithoutExt = oldName.substring(0, lastDotIndex);
+                extension = oldName.substring(lastDotIndex);
+            }
+
+            const container = document.createElement('div');
+            container.className = 'rename-container';
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = nameWithoutExt;
+
+            const extSpan = document.createElement('span');
+            extSpan.className = 'file-extension';
+            extSpan.textContent = extension;
+
+            container.appendChild(input);
+            container.appendChild(extSpan);
+
+            element.style.display = 'none';
+            element.parentElement.insertBefore(container, element);
+            input.focus();
+            input.select();
+
+            const revert = () => {
+                element.style.display = '';
+                container.remove();
+            };
+
+            input.addEventListener('blur', revert);
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    input.value += '_';
+                } else if (e.key === 'Enter') {
+                    const newNameWithoutExt = input.value;
+                    const newName = newNameWithoutExt + extension;
+
+                    input.disabled = true; // Prevent further edits
+
+                    if (newName && newName !== oldName) {
+                        fetch(`/files/rename/${oldName}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ new_name: newName })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    window.location.reload();
+                                } else {
+                                    alert(`Error renaming file: ${data.error}`);
+                                    revert();
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('An unexpected error occurred.');
+                                revert();
+                            });
+                    } else {
+                        revert();
+                    }
+                } else if (e.key === 'Escape') {
+                    revert();
+                }
+            });
+        }
+
+        function startRenameMobile(button, oldName) {
+            const fileItem = button.closest('.file-item');
+            const nameSpan = fileItem.querySelector('.file-name span');
+            if (!nameSpan) {
+                console.error('Could not find .file-name span element');
+                return;
+            }
+            startRename(nameSpan, oldName);
+
+            // Close the expanded menu after starting rename
+            const expandedMenu = button.closest('.file-actions-expanded');
+            if (expandedMenu) {
+                const toggleButton = expandedMenu.previousElementSibling;
+                expandedMenu.classList.remove('show');
+                if (toggleButton && toggleButton.classList.contains('collapse-toggle')) {
+                    toggleButton.classList.remove('expanded');
+                }
+            }
+        }
+
+        // Global upload file function (will be set by DOMContentLoaded)
+        let globalUploadFile = null;
+
+        // Upload modal functions
+        function openUploadModal() {
+            const modal = document.getElementById('uploadModal');
+            if (modal) {
+                modal.style.display = 'block';
+            }
+        }
+
+        function closeUploadModal() {
+            const modal = document.getElementById('uploadModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function selectFileFromFilesystem() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) {
+                fileInput.click();
+            }
+        }
+
+        function pasteFromClipboard() {
+            // Check if clipboard API is available
+            if (!navigator.clipboard || !navigator.clipboard.read) {
+                alert('Clipboard access is not available in this browser. Please use the file picker instead.');
+                return;
+            }
+
+            // Request clipboard access
+            navigator.clipboard.read().then(clipboardItems => {
+                let foundImage = false;
+
+                for (const clipboardItem of clipboardItems) {
+                    for (const type of clipboardItem.types) {
+                        if (type.startsWith('image/')) {
+                            foundImage = true;
+                            clipboardItem.getType(type).then(blob => {
+                                // Determine file extension from MIME type
+                                const mimeToExt = {
+                                    'image/png': 'png',
+                                    'image/jpeg': 'jpg',
+                                    'image/jpg': 'jpg',
+                                    'image/gif': 'gif',
+                                    'image/webp': 'webp',
+                                    'image/bmp': 'bmp'
+                                };
+                                const ext = mimeToExt[type] || 'png';
+
+                                // Create a File object from the blob
+                                const file = new File([blob], `pasted-image-${Date.now()}.${ext}`, { type: type });
+                                if (globalUploadFile) {
+                                    globalUploadFile(file);
+                                    closeUploadModal();
+                                }
+                            }).catch(err => {
+                                console.error('Failed to get clipboard item:', err);
+                                alert('Failed to read image from clipboard.');
+                            });
+                            break;
+                        }
+                    }
+                    if (foundImage) break;
+                }
+
+                if (!foundImage) {
+                    alert('No image found in clipboard. Please copy an image first (Ctrl+C or right-click > Copy).');
+                }
+            }).catch(err => {
+                console.error('Failed to read clipboard:', err);
+                if (err.name === 'NotAllowedError') {
+                    alert('Clipboard access denied. Please grant permission and try again.');
+                } else {
+                    alert('Unable to access clipboard. Please use the file picker instead.');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('mediaModal');
+            const closeBtn = document.querySelector('.close-button');
+
+            if (closeBtn) {
+                closeBtn.onclick = closeModal;
+            }
+
+            // Initialize clear button visibility
+            toggleClearButton();
+
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            }
+
+            window.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && modal.style.display === 'block') {
+                    closeModal();
+                }
+            });
+
+            // Upload modal handlers
+            const uploadModal = document.getElementById('uploadModal');
+            if (uploadModal) {
+                // Close modal when clicking outside
+                window.addEventListener('click', function (event) {
+                    if (event.target == uploadModal) {
+                        closeUploadModal();
+                    }
+                });
+
+                // Close modal on Escape key
+                window.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape' && uploadModal.style.display === 'block') {
+                        closeUploadModal();
+                    }
+                });
+
+                // Handle file input change
+                const fileInput = document.getElementById('fileInput');
+                if (fileInput) {
+                    fileInput.addEventListener('change', function (e) {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                            // Upload each selected file
+                            Array.from(files).forEach(file => {
+                                if (globalUploadFile) {
+                                    globalUploadFile(file);
+                                }
+                            });
+                            closeUploadModal();
+                            // Reset file input
+                            e.target.value = '';
+                        }
+                    });
+                }
+            }
+
+            // Desktop rename button handlers
+            document.querySelectorAll('.rename-button').forEach(button => {
+                button.addEventListener('click', function () {
+                    const fileItem = this.closest('.file-item');
+                    const nameSpan = fileItem.querySelector('.file-name span');
+                    if (nameSpan && nameSpan.dataset.filename) {
+                        startRename(nameSpan, nameSpan.dataset.filename);
+                    }
+                });
+            });
+
+            // Mobile rename button handlers
+            document.querySelectorAll('.rename-button-mobile').forEach(button => {
+                button.addEventListener('click', function () {
+                    const fileItem = this.closest('.file-item');
+                    const nameSpan = fileItem.querySelector('.file-name span');
+                    if (nameSpan && nameSpan.dataset.filename) {
+                        startRenameMobile(this, nameSpan.dataset.filename);
+                    }
+                });
+            });
+
+            // Drag and Drop functionality
+            const dropZone = document.getElementById('dropZone');
+            const uploadProgress = document.getElementById('uploadProgress');
+            const uploadStatus = document.getElementById('uploadStatus');
+            const uploadProgressFill = document.getElementById('uploadProgressFill');
+
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                document.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Highlight drop zone when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                document.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                document.addEventListener(eventName, unhighlight, false);
+            });
+
+            let dragCounter = 0;
+
+            function highlight(e) {
+                dragCounter++;
+                if (dragCounter === 1) {
+                    dropZone.classList.add('active');
+                }
+            }
+
+            function unhighlight(e) {
+                dragCounter--;
+                if (dragCounter === 0) {
+                    dropZone.classList.remove('active');
+                }
+            }
+
+            // Handle dropped files
+            document.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                // Reset counter and hide drop zone
+                dragCounter = 0;
+                dropZone.classList.remove('active');
+
+                handleFiles(files);
+            }
+
+            // Handle paste events
+            document.addEventListener('paste', function (e) {
+                const items = e.clipboardData.items;
+                const files = [];
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (item.kind === 'file') {
+                        files.push(item.getAsFile());
+                    }
+                }
+
+                if (files.length > 0) {
+                    handleFiles(files);
+                }
+            });
+
+            // File upload handling
+            function handleFiles(files) {
+                Array.from(files).forEach(uploadFile);
+            }
+
+            // Close expanded menus when clicking outside
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('.file-details')) {
+                    document.querySelectorAll('.file-actions-expanded.show').forEach(menu => {
+                        menu.classList.remove('show');
+                        menu.previousElementSibling.classList.remove('expanded');
+                    });
+                }
+            });
+
+            function uploadFile(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                console.log(`[Upload] Starting upload for file: ${file.name}, size: ${file.size} bytes (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+
+                // Show upload progress
+                uploadProgress.classList.add('show');
+                uploadProgress.classList.remove('success', 'error');
+                uploadStatus.textContent = `Uploading ${file.name}...`;
+                uploadProgressFill.style.width = '0%';
+
+                // Use XMLHttpRequest to track real upload progress
+                const xhr = new XMLHttpRequest();
+                const uploadStartTime = Date.now();
+                let lastProgressTime = uploadStartTime;
+                let lastLoaded = 0;
+
+                // Track upload progress
+                xhr.upload.addEventListener('progress', (e) => {
+                    const now = Date.now();
+                    const timeSinceLastProgress = now - lastProgressTime;
+                    const bytesSinceLastProgress = e.loaded - lastLoaded;
+                    const speedMBps = bytesSinceLastProgress / timeSinceLastProgress / 1024; // MB/s
+
+                    console.log(`[Upload Progress] Loaded: ${e.loaded} / ${e.total} bytes, ` +
+                        `Percent: ${((e.loaded / e.total) * 100).toFixed(2)}%, ` +
+                        `Speed: ${speedMBps.toFixed(2)} MB/s, ` +
+                        `Time since last: ${timeSinceLastProgress}ms`);
+
+                    if (e.lengthComputable) {
+                        const percentComplete = (e.loaded / e.total) * 100;
+                        uploadProgressFill.style.width = percentComplete + '%';
+                        uploadStatus.textContent = `Uploading ${file.name} (${Math.round(percentComplete)}%)...`;
+                    } else {
+                        console.warn('[Upload Progress] Length not computable!');
+                    }
+
+                    lastProgressTime = now;
+                    lastLoaded = e.loaded;
+                });
+
+                // Track when upload completes (all data sent to server)
+                xhr.upload.addEventListener('load', () => {
+                    const uploadTime = ((Date.now() - uploadStartTime) / 1000).toFixed(2);
+                    console.log(`[Upload] All data sent to server! Time: ${uploadTime}s. Waiting for server response...`);
+                    uploadStatus.textContent = `Processing ${file.name}...`;
+                });
+
+                // Track upload errors
+                xhr.upload.addEventListener('error', (e) => {
+                    console.error('[Upload] Upload error event:', e);
+                });
+
+                // Track upload abort
+                xhr.upload.addEventListener('abort', (e) => {
+                    console.warn('[Upload] Upload aborted:', e);
+                });
+
+                // Track upload timeout
+                xhr.upload.addEventListener('timeout', (e) => {
+                    console.error('[Upload] Upload timeout:', e);
+                });
+
+                // Handle server response
+                xhr.addEventListener('load', () => {
+                    const totalTime = ((Date.now() - uploadStartTime) / 1000).toFixed(2);
+                    console.log(`[Upload] Server responded with status ${xhr.status}. Total time: ${totalTime}s`);
+                    console.log(`[Upload] Response text: ${xhr.responseText.substring(0, 200)}`);
+
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        uploadProgressFill.style.width = '100%';
+
+                        if (data.success) {
+                            console.log(`[Upload] Success! Filename: ${data.filename}`);
+                            uploadProgress.classList.add('success');
+                            uploadStatus.textContent = `Uploaded: ${data.filename}`;
+
+                            // Refresh the file list after a short delay
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            // Show the actual error message from the server
+                            console.error(`[Upload] Server returned error: ${data.error}`);
+                            uploadProgress.classList.add('error');
+                            const errorMsg = data.error || 'Unknown error';
+                            uploadStatus.textContent = `Error: ${errorMsg}`;
+
+                            // Hide progress after 3 seconds
+                            setTimeout(() => {
+                                uploadProgress.classList.remove('show');
+                            }, 3000);
+                        }
+                    } catch (error) {
+                        // Failed to parse JSON response
+                        console.error(`[Upload] Failed to parse JSON response:`, error);
+                        console.error(`[Upload] Raw response: ${xhr.responseText}`);
+                        uploadProgress.classList.add('error');
+
+                        // Handle specific HTTP status codes
+                        if (xhr.status === 413) {
+                            uploadStatus.textContent = `Upload failed: File too large. Increase nginx client_max_body_size`;
+                        } else if (xhr.status === 401) {
+                            uploadStatus.textContent = `Upload failed: Not authenticated`;
+                        } else if (xhr.status >= 500) {
+                            uploadStatus.textContent = `Upload failed: Server error`;
+                        } else if (xhr.status >= 400) {
+                            uploadStatus.textContent = `Upload failed: Bad request`;
+                        } else {
+                            uploadStatus.textContent = `Upload failed: Invalid response`;
+                        }
+
+                        setTimeout(() => {
+                            uploadProgress.classList.remove('show');
+                        }, 5000); // Show for 5 seconds so user can read the message
+                    }
+                });
+
+                // Handle network errors
+                xhr.addEventListener('error', (e) => {
+                    console.error('[Upload] Network error event:', e);
+                    console.error(`[Upload] XHR status: ${xhr.status}, readyState: ${xhr.readyState}`);
+                    uploadProgress.classList.add('error');
+                    uploadStatus.textContent = `Upload failed: Network error`;
+
+                    setTimeout(() => {
+                        uploadProgress.classList.remove('show');
+                    }, 3000);
+                });
+
+                // Handle upload abort
+                xhr.addEventListener('abort', (e) => {
+                    console.warn('[Upload] Request aborted:', e);
+                    uploadProgress.classList.add('error');
+                    uploadStatus.textContent = `Upload cancelled`;
+
+                    setTimeout(() => {
+                        uploadProgress.classList.remove('show');
+                    }, 3000);
+                });
+
+                // Handle timeout
+                xhr.addEventListener('timeout', (e) => {
+                    console.error('[Upload] Request timeout:', e);
+                    uploadProgress.classList.add('error');
+                    uploadStatus.textContent = `Upload failed: Timeout`;
+
+                    setTimeout(() => {
+                        uploadProgress.classList.remove('show');
+                    }, 3000);
+                });
+
+                // Track ready state changes
+                xhr.addEventListener('readystatechange', () => {
+                    const states = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
+                    console.log(`[Upload] ReadyState changed to: ${xhr.readyState} (${states[xhr.readyState]}), Status: ${xhr.status}`);
+                });
+
+                // Send the request
+                console.log('[Upload] Opening XHR connection to /files/upload');
+                xhr.open('POST', '/files/upload', true);
+
+                // Set a longer timeout for large files (10 minutes)
+                xhr.timeout = 600000; // 10 minutes in milliseconds
+                console.log('[Upload] Timeout set to 10 minutes');
+
+                console.log('[Upload] Sending FormData...');
+                xhr.send(formData);
+            }
+
+            // Make uploadFile globally accessible
+            globalUploadFile = uploadFile;
+
+            // Pull to refresh logic
+            (function () {
+                let touchStart = 0;
+                let touchMove = 0;
+                const pullThreshold = 70;
+                const ptrElement = document.getElementById('pull-to-refresh');
+                const ptrText = document.getElementById('pull-to-refresh-text');
+                const ptrIcon = ptrElement.querySelector('.refresh-icon');
+
+                window.addEventListener('touchstart', (e) => {
+                    // Only start tracking if we are at the top
+                    if (window.scrollY === 0) {
+                        touchStart = e.touches[0].pageY;
+                    } else {
+                        touchStart = 0;
+                    }
+                }, { passive: true });
+
+                window.addEventListener('touchmove', (e) => {
+                    if (touchStart > 0) {
+                        const currentY = e.touches[0].pageY;
+                        touchMove = currentY - touchStart;
+
+                        if (touchMove > 0 && window.scrollY === 0) {
+                            // Prevent default scrolling when pulling down at the top
+                            if (e.cancelable) e.preventDefault();
+
+                            const pull = Math.min(touchMove * 0.4, pullThreshold + 20);
+                            ptrElement.style.transform = `translateY(${pull}px)`;
+
+                            if (pull > pullThreshold) {
+                                ptrText.textContent = 'Release to refresh';
+                                ptrIcon.style.transform = 'rotate(180deg)';
+                            } else {
+                                ptrText.textContent = 'Pull down to refresh';
+                                ptrIcon.style.transform = 'rotate(0deg)';
+                            }
+                        }
+                    }
+                }, { passive: false });
+
+                window.addEventListener('touchend', () => {
+                    if (touchStart > 0) {
+                        const finalPull = touchMove * 0.4;
+                        if (finalPull > pullThreshold && window.scrollY === 0) {
+                            ptrText.textContent = 'Refreshing...';
+                            ptrElement.style.transform = `translateY(${pullThreshold}px)`;
+                            ptrIcon.className = 'fas fa-sync-alt fa-spin refresh-icon';
+                            window.location.reload();
+                        } else {
+                            ptrElement.style.transform = 'translateY(0)';
+                        }
+                        touchStart = 0;
+                        touchMove = 0;
+                    }
+                });
+            })();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,113 @@
+#EXTM3U
+#EXTGRP:🏈 NFL
+#EXTINF:-1,🏈 No games available.
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_Empty
+#EXTGRP:🎫 Sunday Ticket
+#EXTINF:-1,🎫 Dallas @ NY Giants - FOX 1
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/651?n=1
+#EXTINF:-1,🎫 Tennessee @ Jacksonville - FOX 2
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/652?n=2
+#EXTINF:-1,🎫 New Orleans @ Atlanta - FOX 3
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/653?n=3
+#EXTINF:-1,🎫 Indianapolis @ Houston - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/851?n=4
+#EXTINF:-1,🎫 Green Bay @ Minnesota - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/852?n=5
+#EXTINF:-1,🎫 Cleveland @ Cincinnati - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/853?n=6
+#EXTINF:-1,🎫 Detroit @ Chicago - FOX
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/654?n=7
+#EXTINF:-1,🎫 Miami @ New England - FOX
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/655?n=8
+#EXTINF:-1,🎫 Arizona @ LA Rams -  FOX
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/656?n=9
+#EXTINF:-1,🎫 LA Chargers @ Denver - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/854?n=10
+#EXTINF:-1,🎫 Washington @ Philadelphia - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/855?n=11
+#EXTINF:-1,🎫 NY Jets @ Buffalo - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/856?n=12
+#EXTINF:-1,🎫 Kansas City @ Las Vegas - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/857?n=13
+#EXTINF:-1,🎫 NFL Network
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/668?n=14
+#EXTINF:-1,🎫 INTERNATIONAL - Dallas @ NY Giants - FOX 1
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/651?inter=1&15
+#EXTINF:-1,🎫 INTERNATIONAL - Tennessee @ Jacksonville - FOX 2
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/652?inter=1&16
+#EXTINF:-1,🎫 INTERNATIONAL - New Orleans @ Atlanta - FOX 3
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/653?inter=1&17
+#EXTINF:-1,🎫 INTERNATIONAL - Indianapolis @ Houston - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/851?inter=1&18
+#EXTINF:-1,🎫 INTERNATIONAL - Green Bay @ Minnesota - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/852?inter=1&19
+#EXTINF:-1,🎫 INTERNATIONAL - Cleveland @ Cincinnati - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/853?inter=1&20
+#EXTINF:-1,🎫 INTERNATIONAL - Detroit @ Chicago - FOX
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/654?inter=1&21
+#EXTINF:-1,🎫 INTERNATIONAL - Miami @ New England - FOX
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/655?inter=1&22
+#EXTINF:-1,🎫 INTERNATIONAL - Arizona @ LA Rams -  FOX
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/656?inter=1&23
+#EXTINF:-1,🎫 INTERNATIONAL - LA Chargers @ Denver - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/854?inter=1&24
+#EXTINF:-1,🎫 INTERNATIONAL - Washington @ Philadelphia - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/855?inter=1&25
+#EXTINF:-1,🎫 INTERNATIONAL - NY Jets @ Buffalo - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/856?inter=1&26
+#EXTINF:-1,🎫 INTERNATIONAL - Kansas City @ Las Vegas - CBS
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/857?inter=1&27
+#EXTGRP:📺 Channels
+#EXTINF:-1,📺 UFC Events (PPV or Fight Night)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/-1307
+#EXTINF:-1,📺 (Experimental DVR) - UFC Events (PPV or Fight Night)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/-1308
+#EXTINF:-1,📺 Archive - UFC Events (PPV or Fight Night)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/6001
+#EXTINF:-1,📺 ESPN
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/5000
+#EXTINF:-1,📺 ESPN2
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/5001
+#EXTINF:-1,📰 ESPN News
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/5002
+#EXTINF:-1,📺 ESPN U
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/5003
+#EXTINF:-1,📺 MLB Big Inning (Weekdays 9:30pm ET)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/45
+#EXTINF:-1,📺 FS1
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/601?channelsSection=1
+#EXTINF:-1,📺 FS2
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/602
+#EXTINF:-1,📺 BTN
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/603
+#EXTINF:-1,📺 Fox Deportes
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/604
+#EXTINF:-1,📺 Fox Soccer Plus
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/605
+#EXTINF:-1,📺 Fox (60fps) - Only available during Primetime (US IP required)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/620
+#EXTINF:-1,📺 CBS (60fps) (US IP required)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/802?global=true
+#EXTINF:-1,📺 WWE (24/7 and Major Events)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/-13001
+#EXTINF:-1,📺 The CW
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/5036
+#EXTINF:-1,📺 CBS (Standard Quality)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/5012
+#EXTINF:-1,📺 NBC (Standard Quality)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/5010
+#EXTINF:-1,📺 ABC (Standard Quality)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/5011
+#EXTINF:-1,📺 NESN 4k
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/107
+#EXTINF:-1,🏆 CBS Sports Network (US IP Only)
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_CHN/804?global=true
+#EXTGRP:🏀 NBA
+#EXTINF:-1,🏀 Suns @ Pistons - Alternate 1
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_HKY/221?broadcast=default-pistons
+#EXTINF:-1,🏀 Celtics @ Heat - Alternate 1
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_HKY/221?broadcast=default-heat
+#EXTINF:-1,🏀 Thunder @ Rockets - Alternate 1
+https://seasons4u.com/api2/ATV_Beta_v0_1/Watch_HKY/221?broadcast=default-rockets
+#EXTGRP:🏠 NBA Local
+#EXTGRP:🔒 DRM Channels

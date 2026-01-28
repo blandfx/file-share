@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://blandfx.com/assets/skull.ico" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>URL Downloader</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .header-container {
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .header-container h1 {
+            margin: 0;
+            flex: 1;
+            text-align: left;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+        }
+
+        .nav-button:hover {
+            background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-button i {
+            margin-right: 6px;
+        }
+
+        .url-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            flex-direction: column;
+            margin: 0 auto;
+        }
+
+        .url-form .form-group {
+            flex: 1;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .url-form .form-control {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .url-form .btn {
+            margin-top: 25px;
+            width: 150px;
+            background-color: #007bff;
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .url-form .btn i {
+            margin-right: 5px;
+        }
+
+        .url-form .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .loading {
+            display: none;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .downloads-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 30px;
+        }
+
+        .download-item {
+            background: #23272f;
+            border: 1px solid #444857;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .download-info {
+            flex: 1;
+        }
+
+        .download-url {
+            font-weight: bold;
+            margin-bottom: 8px;
+            word-break: break-all;
+            color: #f8f9fa;
+            font-size: 1.1em;
+            background: #181a20;
+            padding: 6px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .download-status {
+            margin-top: 6px;
+            font-size: 1.05em;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            background: #181a20;
+        }
+
+        .download-progress {
+            width: 100%;
+            height: 7px;
+            background-color: #343a40;
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff 60%, #00c6ff 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .download-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 8px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-cancel:hover {
+            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-cancel:active {
+            transform: translateY(0px);
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-cancel i {
+            margin-right: 6px;
+            font-size: 0.85em;
+        }
+
+        .status-pending { color: #ffc107; background: #3a2e13; }
+        .status-downloading { color: #00c6ff; background: #1a2636; }
+        .status-converting { color: #ff8c00; background: #362a18; }
+        .status-completed { color: #28a745; background: #1d2e1d; }
+        .status-failed { color: #dc3545; background: #2e1d1d; }
+        .status-cancelled { color: #6c757d; background: #23272f; }
+
+        .download-actions button, .download-actions a {
+            background-color: #4AA3DF;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            width: 34px;
+            height: 28px;
+            box-sizing: border-box;
+        }
+
+        .download-actions button:hover, .download-actions a:hover {
+            background-color: #5BC0DE;
+        }
+        
+        .download-actions .delete-button {
+            background-color: #dc3545 !important;
+        }
+
+        .download-actions .copy-success {
+            background-color: #28a745 !important;
+        }
+    </style>
+</head>
+<body>
+<div class="header-container">
+    <h1>URL Downloader</h1>
+    <a href="https://blandfx.com/files/" class="nav-button">
+        <i class="fa fa-arrow-left"></i> Back to Files
+    </a>
+</div>
+<form method="post" class="url-form" id="downloadForm">
+    <div class="form-group">
+        <input type="text" id="url" name="url" placeholder="Enter URL" required class="form-control">
+    </div>
+    <div class="form-group">
+        <input type="text" id="filename" name="filename" placeholder="Optional: Enter Filename" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">
+        <i class="fa fa-download"></i> Download
+    </button>
+</form>
+
+<div class="downloads-container" id="downloadsContainer">
+    {% if downloads %}
+        {% for download_id, download in downloads.items() %}
+            <div class="download-item" id="download-{{ download_id }}">
+                <div class="download-info">
+                    <div class="download-url">{{ download.url }}</div>
+                    <div class="download-status status-{{ download.status }}">
+                        Status: {% if download.status == 'converting' %}Converting Video{% else %}{{ download.status|title }}{% endif %}
+                        {% if download.error %}
+                            - {{ download.error }}
+                        {% endif %}
+                    </div>
+                    <div class="download-progress">
+                        <div class="progress-bar" style="width: {{ download.progress }}%"></div>
+                    </div>
+                    <div class="download-actions">
+                        {% if download.status in ['pending', 'downloading'] %}
+                            <button class="btn-cancel" onclick="cancelDownload('{{ download_id }}')">
+                                <i class="fa fa-times"></i> Cancel
+                            </button>
+                        {% elif download.status == 'converting' %}
+                            <div style="color: #ff8c00; font-size: 0.9em; padding: 8px;">
+                                <i class="fas fa-cog fa-spin"></i> Converting...
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<script>
+    // Set focus on the input box when the page loads
+    window.onload = function() {
+        document.getElementById('url').focus();
+    };
+
+    // Handle form submission
+    document.getElementById('downloadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const url = document.getElementById('url').value;
+        const filename = document.getElementById('filename').value;
+        
+        fetch('/files/download', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`
+        })
+        .then(response => {
+            console.log('Download response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Download response data:', data);
+            if (data.status === 'started') {
+                document.getElementById('url').value = '';
+                document.getElementById('filename').value = '';
+                // Refresh the page to show the new download
+                location.reload();
+            } else {
+                console.error('Download failed:', data);
+                alert(`Error: ${data.message || 'Unknown error starting download'}`);
+            }
+        })
+        .catch(error => {
+            console.error('Download request failed:', error);
+            alert(`Network error: ${error.message}`);
+        });
+    });
+
+    // Function to cancel a download
+    function cancelDownload(downloadId) {
+        fetch(`/files/download/cancel/${downloadId}`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'cancelled') {
+                // Refresh the page to update the status
+                location.reload();
+            } else {
+                alert(data.message || 'Error cancelling download');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error cancelling download');
+        });
+    }
+
+    // Function to update download statuses
+    function updateDownloadStatuses() {
+        const downloads = document.querySelectorAll('.download-item:not([data-final="true"])');
+        
+        downloads.forEach(download => {
+            const downloadId = download.id.replace('download-', '');
+            
+            fetch(`/files/download/status/${downloadId}`)
+                .then(response => {
+                    console.log(`Status response for ${downloadId}:`, response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(`Status data for ${downloadId}:`, data);
+                    if (data.status !== 'not_found') {
+                        const statusElement = download.querySelector('.download-status');
+                        const progressBar = download.querySelector('.progress-bar');
+                        const actionsContainer = download.querySelector('.download-actions');
+                        
+                        statusElement.className = `download-status status-${data.status}`;
+                        
+                        // Set appropriate status text
+                        let statusText = '';
+                        switch(data.status) {
+                            case 'pending':
+                                statusText = 'Status: Pending';
+                                break;
+                            case 'downloading':
+                                statusText = 'Status: Downloading';
+                                break;
+                            case 'converting':
+                                statusText = 'Status: Converting Video';
+                                break;
+                            case 'completed':
+                                statusText = 'Status: Completed';
+                                break;
+                            case 'failed':
+                                statusText = 'Status: Failed';
+                                break;
+                            case 'cancelled':
+                                statusText = 'Status: Cancelled';
+                                break;
+                            default:
+                                statusText = `Status: ${data.status.charAt(0).toUpperCase() + data.status.slice(1)}`;
+                        }
+                        
+                        statusElement.textContent = statusText;
+                        if (data.error) {
+                            statusElement.textContent += ` - ${data.error}`;
+                        }
+                        
+                        progressBar.style.width = `${data.progress}%`;
+                        
+                        if ((data.status === 'completed' || data.status === 'failed' || data.status === 'cancelled') && !download.dataset.final) {
+                            download.dataset.final = true; // Mark as processed
+                            
+                            // Clear out the cancel button if it exists
+                            actionsContainer.innerHTML = '';
+
+                            if (data.status === 'completed' && data.filename) {
+                                const filename = data.filename.split('/').pop();
+                                
+                                // View/Edit Button
+                                const viewLink = document.createElement('a');
+                                if (filename.endsWith('.txt')) {
+                                    viewLink.href = `/files/notes?filename=${encodeURIComponent(filename)}`;
+                                    viewLink.title = "Edit note";
+                                } else {
+                                    viewLink.href = `/media/${encodeURIComponent(filename)}`;
+                                    viewLink.target = "_blank";
+                                    viewLink.title = "View file";
+                                }
+                                viewLink.style.backgroundColor = '#ffc107';
+                                viewLink.innerHTML = `<i class="fas fa-eye"></i>`;
+                                actionsContainer.appendChild(viewLink);
+
+                                // Copy Button
+                                const copyButton = document.createElement('button');
+                                copyButton.title = "Copy Link";
+                                copyButton.innerHTML = `<i class="fas fa-copy"></i>`;
+                                copyButton.onclick = () => copyToClipboard(filename, copyButton);
+                                actionsContainer.appendChild(copyButton);
+
+                                // Download Link
+                                const downloadLink = document.createElement('a');
+                                downloadLink.href = `/media/${encodeURIComponent(filename)}`;
+                                downloadLink.download = true;
+                                downloadLink.title = "Download File";
+                                downloadLink.style.backgroundColor = '#28a745';
+                                downloadLink.innerHTML = `<i class="fas fa-download"></i>`;
+                                actionsContainer.appendChild(downloadLink);
+
+                                // Delete Button
+                                const deleteButton = document.createElement('button');
+                                deleteButton.className = 'delete-button';
+                                deleteButton.title = "Delete File";
+                                deleteButton.innerHTML = `<i class="fas fa-times"></i>`;
+                                deleteButton.onclick = () => deleteFile(filename, deleteButton);
+                                actionsContainer.appendChild(deleteButton);
+                            }
+                            
+                            // For failed/cancelled, we could add a "clear" button or just let them fade.
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error updating status for ${downloadId}:`, error);
+                });
+        });
+    }
+
+    function copyToClipboard(path, btnElement) {
+        const fullUrl = `${window.location.origin}/media/${path}`;
+        navigator.clipboard.writeText(fullUrl).then(function() {
+            btnElement.classList.add("copy-success");
+            setTimeout(() => {
+                btnElement.classList.remove("copy-success");
+            }, 1000);
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+    
+    function deleteFile(filename, btnElement) {
+        if (confirm(`Are you sure you want to delete "${filename}"?`)) {
+            fetch(`/files/delete/${filename}`, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    btnElement.closest('.download-item').remove();
+                } else {
+                    alert(`Error deleting file: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An unexpected error occurred while deleting the file.');
+            });
+        }
+    }
+
+    // Update statuses every 2 seconds
+    const intervalId = setInterval(updateDownloadStatuses, 2000);
+    
+    // Initial update on page load
+    setTimeout(updateDownloadStatuses, 500);
+</script>
+</body>
+</html>

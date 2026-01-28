@@ -1,0 +1,169 @@
+body {
+    background-color: #333;
+    color: #fff;
+    font-family: Consolas, 'Courier New', Courier, monospace;
+    font-size: 16px;
+    font-weight: bold;
+}
+a {
+    color: #4AA3DF;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+ul {
+    list-style-type: none; /* Remove bullet points */
+    padding: 0;
+    margin: 0 0 20px 0; /* Add some bottom margin to the list */
+}
+li {
+    margin-bottom: 15px; /* Add spacing between lines/items */
+}
+.file-size {
+    margin-left: 10px;
+}
+
+.filename {
+    white-space: nowrap; /* Prevents the text from wrapping */
+    overflow: hidden;    /* Hides text that overflows the container's bounds */
+    text-overflow: ellipsis; /* Adds ellipsis to overflowed text */
+    display: block;      /* Makes the span behave like a block for width management */
+    max-width: 90%;      /* Adjust as needed to prevent overflow on small screens */
+}
+.file-item {
+    display: flex;
+    justify-content: space-between; /* Adjust spacing */
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    background-color: #444; /* Default background color for all items */
+}
+.file-item:nth-child(odd) {
+    background-color: #404040; /* Slightly lighter for odd items */
+}
+
+.file-item:nth-child(even) {
+    background-color: #383838; /* Slightly darker for even items */
+}
+.file-name {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 10px; /* Ensure space between filename and size */
+}
+.file-details {
+    display: flex;
+    align-items: center;
+}
+.file-size {
+    margin-right: 10px; /* Space before copy button */
+}
+
+button {
+    margin-left: auto;
+    margin-right: auto;
+    cursor: pointer;
+    background-color: #4AA3DF;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px; /* Set a uniform width for all buttons */
+    height: 28px; /* Set a uniform height for all buttons */
+    margin: 0 5px; /* Ensure consistent spacing between buttons */
+}
+
+button:hover {
+    background-color: #5BC0DE;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0px 10px 0px; /* Adjust padding as necessary */
+}
+
+h1 {
+    margin: 0; /* Remove default margin from h1 */
+    font-size: 3em;
+    /* Add any specific styling for your h1 here */
+}
+
+#searchInput {
+    width: 90%; 
+    background-color: #444; 
+    padding: 5px;
+    border: none;
+    margin: 0 5px 0 5px;
+    color: white;
+}
+
+.button-container {
+    display: flex;
+    align-items: center;
+}
+
+.new-note-button button {
+    background-color: #4a9ae4;
+    margin-left: 5px; /* Adjust margin to control spacing */
+}
+
+.new-download-button button {
+    background-color: #4CAF50;
+    margin-right: 5px; /* Adjust margin to control spacing */
+}
+
+.copy-button {
+    background-color: #4AA3DF;
+    margin-right: 10px;
+}
+
+.copy-button:hover {
+    background-color: #5BC0DE;
+}
+
+.copy-success {
+    background-color: #4CAF50; /* A green background to indicate success */
+    color: white;
+}
+
+.download-button button {
+    background-color: #4CAF50;
+    margin-left: auto;
+}
+
+button i {
+    margin: 0; /* Removes any default margin or padding from the icon */
+    font-size: 16px; /* Ensure consistent icon size */
+}
+
+textarea {
+    width: 90%;
+    height: 75%; /* Adjust if needed */
+    margin: auto;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+}
+
+input[type="text"] {
+    width: 90%;
+    margin: auto;
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+}
+
+form {
+    align-items: center; /* This centers the form elements horizontally */
+}

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Share Documentation</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #4a90e2;
+            --border-color: #333333;
+            --card-bg: #2d2d2d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .route-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .route-title {
+            color: var(--accent-color);
+            margin-top: 0;
+        }
+
+        .route-description {
+            margin-bottom: 10px;
+        }
+
+        .route-link {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .route-link:hover {
+            text-decoration: underline;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>File Share Documentation</h1>
+        
+        <div class="route-card">
+            <h2 class="route-title">Main File Browser</h2>
+            <div class="route-description">
+                <span class="method">GET</span>
+                <a href="https://blandfx.com/files/" class="route-link">/</a>
+            </div>
+            <p>Displays a list of files and directories in the configured media directory. Files are sorted by creation time in descending order.</p>
+        </div>
+
+        <div class="route-card">
+            <h2 class="route-title">File Download</h2>
+            <div class="route-description">
+                <span class="method">GET/POST</span>
+                <a href="https://blandfx.com/files/download" class="route-link">/download</a>
+            </div>
+            <p>Allows downloading media files from various sources using yt-dlp. Supports video and audio downloads from multiple platforms.</p>
+        </div>
+
+        <div class="route-card">
+            <h2 class="route-title">Mileage Tracker</h2>
+            <div class="route-description">
+                <span class="method">GET/POST</span>
+                <a href="https://blandfx.com/files/mileage" class="route-link">/mileage</a>
+            </div>
+            <p>Tracks vehicle mileage against lease terms, showing surplus miles and daily allowance calculations.</p>
+        </div>
+
+        <div class="route-card">
+            <h2 class="route-title">Notes Editor</h2>
+            <div class="route-description">
+                <span class="method">GET/POST</span>
+                <a href="https://blandfx.com/files/notes" class="route-link">/notes</a>
+            </div>
+            <p>Provides a simple text editor for creating and editing .txt files in the media directory.</p>
+        </div>
+
+        <div class="route-card">
+            <h2 class="route-title">URL Control</h2>
+            <div class="route-description">
+                <span class="method">GET/POST</span>
+                <a href="https://blandfx.com/files/url_control" class="route-link">/url_control</a>
+            </div>
+            <p>Manages URLs for TV control, allowing assignment of channels to different URL slots.</p>
+        </div>
+
+        <div class="route-card">
+            <h2 class="route-title">Webcam Stream</h2>
+            <div class="route-description">
+                <span class="method">GET</span>
+                <a href="https://blandfx.com/files/cam" class="route-link">/cam</a>
+            </div>
+            <p>Displays a webcam stream interface.</p>
+        </div>
+
+        <div class="route-card">
+            <h2 class="route-title">Most Recent File</h2>
+            <div class="route-description">
+                <span class="method">GET</span>
+                <a href="https://blandfx.com/files/most_recent_file" class="route-link">/most_recent_file</a>
+            </div>
+            <p>Returns a JSON response containing the URL of the most recently added file in the media directory.</p>
+        </div>
+
+        <div class="route-card">
+            <h2 class="route-title">Device Blocking System</h2>
+            <div class="route-description">
+                <span class="method">AUTO</span>
+                <span class="route-link">Device Blocking</span>
+            </div>
+            <p>Security feature that automatically blocks devices after 3 failed login attempts. Uses device fingerprinting (based on browser characteristics) to identify devices. Block duration starts at 1 hour and increases progressively with repeated blocks. Blocked device details are stored in blocked_devices.json. System administrators receive a Pushover notification when a device is blocked.</p>
+        </div>
+
+        <div class="route-card">
+            <h2 class="route-title">Blocked Devices Management</h2>
+            <div class="route-description">
+                <span class="method">GET</span>
+                <a href="https://blandfx.com/files/blocked_devices" class="route-link">/blocked_devices</a>
+            </div>
+            <p>Displays a list of currently blocked devices, including their fingerprint ID, IP address, user agent, block duration, and block history. Requires authentication.</p>
+        </div>
+
+        <div class="route-card">
+            <h2 class="route-title">Device Unblocking</h2>
+            <div class="route-description">
+                <span class="method">GET</span>
+                <a href="https://blandfx.com/files/unblock_device" class="route-link">/unblock_device/&lt;device_id&gt;</a>
+            </div>
+            <p>Allows administrators to manually unblock devices using their unique device ID. Can be accessed directly or via the unblock buttons on the Blocked Devices Management page. Requires authentication.</p>
+        </div>
+
+        <a href="https://blandfx.com/files/" class="back-link">← Back to File Browser</a>
+    </div>
+</body>
+</html> 

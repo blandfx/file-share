@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Embedded X Post</title>
+  <style>
+    /* Reset default margins and paddings */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Set body to use Flexbox and center content */
+    body {
+      display: flex;
+      justify-content: center; /* Horizontally center */
+      align-items: center;    /* Vertically center */
+      height: 100vh;          /* Full viewport height */
+      background-color: #f5f8fa; /* Light background color */
+      font-family: Arial, sans-serif;
+    }
+
+    /* Optional: Container for the embed to control width */
+    .embed-container {
+      max-width: 550px; /* X's embedded tweets have a max width */
+      width: 100%;
+      padding: 20px;
+      background-color: #ffffff;
+      border: 1px solid #e1e8ed;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="embed-container">
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">“The Chiefs turn it over on….” <br><br>The refs: <a href="https://t.co/DYAGIiYSvm">pic.twitter.com/DYAGIiYSvm</a></p>&mdash; Shooter McGavin (@ShooterMcGavin_) <a href="https://twitter.com/ShooterMcGavin_/status/1835460730444779659?ref_src=twsrc%5Etfw">September 15, 2024</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  </div>
+
+  <!-- Load X's widgets.js script asynchronously -->
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  
+</body>
+</html>

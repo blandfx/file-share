@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Control</title>
+    <link rel="icon" href="https://blandfx.com/assets/skull.ico" type="image/x-icon">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            margin: 0;
+            padding: 20px;
+            color: #fff;
+        }
+        h1, h2 {
+            color: #fff;
+            margin-bottom: 30px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .url-input {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .url-row {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            column-gap: 16px;
+            row-gap: 10px;
+        }
+        .url-label {
+            font-weight: bold;
+            min-width: 80px;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .url-field {
+            flex-grow: 1;
+            position: relative;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background-color: #383838;
+            color: #fff;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #5cb85c;
+            box-shadow: 0 0 0 2px rgba(92, 184, 92, 0.2);
+        }
+        button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        .channel-list {
+            margin-top: 30px;
+            border-top: 1px solid #444;
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .channel-name {
+            font-size: 15px;
+            color: #fff;
+            font-weight: 500;
+        }
+        .assigned-channel {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #fff;
+            background: linear-gradient(135deg, #5cb85c, #4cae4c);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+        .save-button {
+            margin-top: 20px;
+            padding: 12px 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        }
+        .channel-buttons button {
+            position: relative;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            line-height: 30px;
+            text-align: center;
+            border: 2px solid transparent;
+            background-color: #5cb85c;
+        }
+        .channel-buttons button.active {
+            background-color: #4cae4c;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px #dc3545;
+            font-weight: bold;
+            transform: scale(1.1);
+            z-index: 1;
+        }
+        .channel-list-header {
+            display: contents;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 200px;
+            background-color: #383838;
+            color: #fff;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #5cb85c;
+            box-shadow: 0 0 0 2px rgba(92, 184, 92, 0.2);
+        }
+        .search-box::placeholder {
+            color: #888;
+        }
+        .hidden {
+            display: none;
+        }
+        .url-label a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .url-label a:hover {
+            color: #5cb85c;
+        }
+        .channel-name a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .channel-name a:hover {
+            color: #5cb85c;
+        }
+        .category-section {
+            margin-bottom: 24px;
+        }
+        .category-header {
+            color: #5cb85c;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(92, 184, 92, 0.4);
+        }
+        .last-updated {
+            color: #888;
+            font-size: 12px;
+            margin: 5px 0 0 0;
+            font-style: italic;
+        }
+        .channel-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 16px;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid transparent;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .channel-item:hover {
+            background-color: rgba(92, 184, 92, 0.1);
+            border-color: rgba(92, 184, 92, 0.25);
+        }
+        .channel-buttons form {
+            margin: 0;
+        }
+        .channel-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .channel-buttons button {
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .channel-buttons button.active {
+            box-shadow: 0 0 0 2px #dc3545, 0 4px 10px rgba(220, 53, 69, 0.35);
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            .url-row {
+                grid-template-columns: 1fr;
+            }
+            .url-label {
+                min-width: 0;
+            }
+            .channel-item {
+                grid-template-columns: 1fr;
+                row-gap: 12px;
+            }
+            .channel-buttons {
+                justify-content: flex-start;
+            }
+            .header-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .search-box {
+                flex: 1;
+            }
+        }
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .update-button {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .update-button:hover {
+            background-color: #0056b3;
+        }
+        .update-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- <h1>URL Control</h1> -->
+        <form method="POST">
+            {% for index, url in indexed_urls %}
+                <div class="url-input">
+                    <div class="url-row">
+                        <div class="url-label">
+                            {% if url %}
+                                <a href="{{ url }}" target="_blank">URL {{ index + 1 }}:</a>
+                            {% else %}
+                                URL {{ index + 1 }}:
+                            {% endif %}
+                        </div>
+                        <div class="url-field">
+                            <input type="text" id="url{{ index + 1 }}" name="url{{ index + 1 }}" value="{{ url }}">
+                        </div>
+                        {% if url in url_to_channel %}
+                            <span class="assigned-channel">{{ url_to_channel[url] }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+            <button type="submit" class="save-button">Save URLs</button>
+        </form>
+
+        <div class="channel-list">
+            <div class="channel-list-header">
+                <div>
+                    <p class="last-updated">Channels updated {{ last_update_time|datetime }}</p>
+                </div>
+                <div class="header-controls">
+                    <button id="updateChannelsBtn" class="update-button" style="width: 25%; height: 38px;">Update</button>
+                    <input type="text" 
+                           class="search-box" 
+                           placeholder="Search channels..." 
+                           id="channelSearch"
+                           autocomplete="off">
+                </div>
+            </div>
+{% for category, category_channels in channels_by_category.items()|sort %}
+    {% set is_tv_category = ("📺" in category and "Channels" in category) or category == "#EXTGRP:📺 Channels" %}
+    {% if is_tv_category %}
+        {% set tv_channels = [] %}
+        {% set other_channels = [] %}
+        {% for channel_name, channel_url in category_channels %}
+            {% if channel_name.startswith('📺') %}
+                {% set _ = tv_channels.append((channel_name, channel_url)) %}
+            {% else %}
+                {% set _ = other_channels.append((channel_name, channel_url)) %}
+            {% endif %}
+        {% endfor %}
+        {% set sorted_tv_channels = tv_channels | sort(attribute='0') %}
+        {% set sorted_other_channels = other_channels | sort(attribute='0') %}
+        {% set sorted_channels = sorted_tv_channels + sorted_other_channels %}
+        {% for channel_name, channel_url in sorted_channels %}
+    <div class="channel-item" data-channel-name="{{ channel_name.lower() }}" data-category="{{ category.lower() }}">
+        <div class="channel-name">
+            <a href="{{ channel_url }}" target="_blank">📺 {{ channel_name }}</a>
+        </div>
+        <div class="channel-buttons">
+            {% for i in range(1, 5) %}
+                <form method="POST" action="https://blandfx.com/files/url_control">
+                    <input type="hidden" name="url{{ i }}" value="{{ channel_url }}">
+                    <button type="submit" name="assign" value="{{ i }}"
+                        {% if indexed_urls[i-1][1] == channel_url %}class="active"{% endif %}>
+                        {{ i }}
+                    </button>
+                </form>
+            {% endfor %}
+        </div>
+    </div>
+        {% endfor %}
+    {% endif %}
+{% endfor %}
+{% for category, category_channels in channels_by_category.items()|sort %}
+    {% set is_tv_category = ("📺" in category and "Channels" in category) or category == "#EXTGRP:📺 Channels" %}
+    {% if not is_tv_category %}
+        {% set tv_channels = [] %}
+        {% set other_channels = [] %}
+        {% for channel_name, channel_url in category_channels %}
+            {% if channel_name.startswith('📺') %}
+                {% set _ = tv_channels.append((channel_name, channel_url)) %}
+            {% else %}
+                {% set _ = other_channels.append((channel_name, channel_url)) %}
+            {% endif %}
+        {% endfor %}
+        {% set sorted_tv_channels = tv_channels | sort(attribute='0') %}
+        {% set sorted_other_channels = other_channels | sort(attribute='0') %}
+        {% set sorted_channels = sorted_tv_channels + sorted_other_channels %}
+        {% for channel_name, channel_url in sorted_channels %}
+    <div class="channel-item" data-channel-name="{{ channel_name.lower() }}" data-category="{{ category.lower() }}">
+        <div class="channel-name">
+            <a href="{{ channel_url }}" target="_blank">{{ channel_name }}</a>
+        </div>
+        <div class="channel-buttons">
+            {% for i in range(1, 5) %}
+                <form method="POST" action="https://blandfx.com/files/url_control">
+                    <input type="hidden" name="url{{ i }}" value="{{ channel_url }}">
+                    <button type="submit" name="assign" value="{{ i }}"
+                        {% if indexed_urls[i-1][1] == channel_url %}class="active"{% endif %}>
+                        {{ i }}
+                    </button>
+                </form>
+            {% endfor %}
+        </div>
+    </div>
+        {% endfor %}
+    {% endif %}
+{% endfor %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('channelSearch');
+            if (!searchInput) {
+                console.error('Search input not found');
+                return;
+            }
+            
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const channelItems = document.querySelectorAll('.channel-item');
+                
+                if (channelItems.length === 0) {
+                    console.warn('No channel items found');
+                    return;
+                }
+                
+                channelItems.forEach(item => {
+                    const channelName = item.getAttribute('data-channel-name') || '';
+                    const categoryName = item.getAttribute('data-category') || '';
+                    
+                    // Also get the visible text content from the channel link
+                    const channelLink = item.querySelector('.channel-name a');
+                    const visibleText = channelLink ? channelLink.textContent.toLowerCase() : '';
+                    
+                    // Show item if search term is empty or matches channel name, category, or visible text
+                    if (searchTerm === '' || 
+                        channelName.includes(searchTerm) || 
+                        categoryName.includes(searchTerm) ||
+                        visibleText.includes(searchTerm)) {
+                        item.classList.remove('hidden');
+                        item.style.display = '';
+                    } else {
+                        item.classList.add('hidden');
+                        item.style.display = 'none';
+                    }
+                });
+            });
+            
+            const updateButton = document.getElementById('updateChannelsBtn');
+            if (updateButton) {
+                updateButton.addEventListener('click', function() {
+                    const button = this;
+                    const originalText = button.textContent;
+                    
+                    // Disable button and show loading state
+                    button.disabled = true;
+                    button.textContent = 'Updating...';
+                    
+                    // Make the API call
+                    fetch('/files/update_channels', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success message briefly
+                            button.textContent = 'Updated!';
+                            button.style.backgroundColor = '#28a745';
+                            
+                            // Refresh the page after a short delay
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            // Show error message
+                            button.textContent = 'Error: ' + data.error;
+                            button.style.backgroundColor = '#dc3545';
+                            
+                            // Reset button after 3 seconds
+                            setTimeout(() => {
+                                button.disabled = false;
+                                button.textContent = originalText;
+                                button.style.backgroundColor = '#007bff';
+                            }, 3000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        button.textContent = 'Error: ' + error.message;
+                        button.style.backgroundColor = '#dc3545';
+                        
+                        // Reset button after 3 seconds
+                        setTimeout(() => {
+                            button.disabled = false;
+                            button.textContent = originalText;
+                            button.style.backgroundColor = '#007bff';
+                        }, 3000);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

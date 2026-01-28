@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://blandfx.com/assets/skull.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="https://blandfx.com/media/ai-pirate.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://blandfx.com/media/ai-pirate.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Torran">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Torran - Torrent Search</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .header-container {
+            text-align: center;
+            margin-bottom: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .header-container h1 {
+            margin: 0;
+            text-align: center;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 50%, #17a2b8 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-button:hover {
+            background: linear-gradient(135deg, #20c997 0%, #17a2b8 50%, #138496 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5), 0 4px 8px rgba(0, 0, 0, 0.15);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-button:hover::before {
+            left: 100%;
+        }
+
+        .nav-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(40, 167, 69, 0.4);
+        }
+
+        .nav-button i {
+            margin-right: 8px;
+        }
+
+        .search-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            flex-direction: column;
+            margin: 0 auto;
+        }
+
+        .search-form .form-group {
+            flex: 1;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .search-form .form-control {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .search-form .btn {
+            margin-top: 15px;
+            width: 200px;
+            background: linear-gradient(135deg, #4AA3DF 0%, #3d8bc4 50%, #2d7ab3 100%);
+            border: none;
+            padding: 18px 30px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 18px;
+            font-weight: 600;
+            min-height: 56px;
+            box-shadow: 0 4px 15px rgba(74, 163, 223, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-form .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .search-form .btn:hover::before {
+            left: 100%;
+        }
+
+        .search-form .btn:hover {
+            background: linear-gradient(135deg, #5BC0DE 0%, #4AA3DF 50%, #3d8bc4 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 163, 223, 0.5), 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .search-form .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(74, 163, 223, 0.4);
+        }
+
+        .search-form .btn i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .search-form .btn:disabled {
+            background: linear-gradient(135deg, #555 0%, #444 100%);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .search-form .btn:disabled::before {
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .results-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 30px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .result-item {
+            background: #23272f;
+            border: 1px solid #444857;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+        }
+
+        /* Only apply hover effects on devices that support hover (not touch devices) */
+        @media (hover: hover) and (pointer: fine) {
+            .result-item:hover {
+                border-color: #4AA3DF;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+        }
+
+        /* Active state for touch devices */
+        .result-item:active {
+            background-color: #2a2f38;
+        }
+
+        .result-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #f8f9fa;
+            font-size: 1.1em;
+        }
+
+        .result-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .result-info {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        .tmdb-result-item {
+            background: #23272f;
+            border: 1px solid #444857;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+            position: relative;
+        }
+
+        .plex-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(229, 160, 13, 0.15);
+            border-radius: 4px;
+            padding: 4px;
+        }
+
+        .plex-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Only apply hover effects on devices that support hover (not touch devices) */
+        @media (hover: hover) and (pointer: fine) {
+            .tmdb-result-item:hover {
+                border-color: #ffc107;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+        }
+
+        /* Active state for touch devices */
+        .tmdb-result-item:active {
+            background-color: #2a2f38;
+        }
+
+        .tmdb-result-name {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #f8f9fa;
+            font-size: 1.2em;
+        }
+
+        .tmdb-result-meta {
+            display: flex;
+            gap: 15px;
+            color: #aaa;
+            font-size: 1em;
+            align-items: center;
+        }
+
+        .tmdb-result-type {
+            color: #4AA3DF;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .tmdb-result-type.series {
+            color: #ff6b6b;
+        }
+
+        .tmdb-result-year {
+            color: #ffc107;
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .tmdb-result-seasons {
+            color: #aaa;
+            font-size: 0.95em;
+            font-style: italic;
+        }
+
+        .tmdb-result-cast {
+            margin-top: 8px;
+            color: #ccc;
+            font-size: 0.9em;
+        }
+
+        .tmdb-result-cast-label {
+            color: #888;
+            margin-right: 5px;
+        }
+
+        .category-selector {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .category-selector.show {
+            display: block;
+        }
+
+        .category-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .category-btn {
+            background: linear-gradient(135deg, #4AA3DF 0%, #3d8bc4 50%, #2d7ab3 100%);
+            color: white;
+            border: none;
+            padding: 18px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex: 1;
+            min-width: 150px;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            box-shadow: 0 4px 15px rgba(74, 163, 223, 0.35), 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            text-transform: capitalize;
+        }
+
+        .category-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        /* Only apply hover effects on devices that support hover (not touch devices) */
+        @media (hover: hover) and (pointer: fine) {
+            .category-btn:hover {
+                background: linear-gradient(135deg, #5BC0DE 0%, #4AA3DF 50%, #3d8bc4 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(74, 163, 223, 0.5), 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+            
+            .category-btn:hover::before {
+                left: 100%;
+            }
+        }
+
+        .category-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(74, 163, 223, 0.4);
+        }
+
+        .category-btn:disabled {
+            background: linear-gradient(135deg, #555 0%, #444 100%);
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .category-btn:disabled::before {
+            display: none;
+        }
+
+        .category-btn.processing {
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 50%, #ffa000 100%);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .category-btn.processing::after {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #000;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background-color: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 800px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 800px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .qbt-link-btn {
+            background: linear-gradient(135deg, #4AA3DF 0%, #3d8bc4 50%, #2d7ab3 100%);
+            color: white;
+            border: none;
+            padding: 18px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(74, 163, 223, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+            margin-left: auto;
+            margin-right: auto;
+            min-height: 56px;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .qbt-link-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .qbt-link-btn:hover {
+            background: linear-gradient(135deg, #5BC0DE 0%, #4AA3DF 50%, #3d8bc4 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 163, 223, 0.5), 0 4px 8px rgba(0, 0, 0, 0.15);
+            color: white;
+            text-decoration: none;
+        }
+
+        .qbt-link-btn:hover::before {
+            left: 100%;
+        }
+
+        .qbt-link-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(74, 163, 223, 0.4);
+        }
+
+        .qbt-link-btn i {
+            margin-right: 8px;
+        }
+
+        .success-message-content {
+            text-align: center;
+        }
+
+        .select-torrent-btn {
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 50%, #ff9800 100%);
+            color: #000;
+            border: none;
+            padding: 18px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 15px;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4), 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            min-height: 56px;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .select-torrent-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        /* Only apply hover effects on devices that support hover (not touch devices) */
+        @media (hover: hover) and (pointer: fine) {
+            .select-torrent-btn:hover {
+                background: linear-gradient(135deg, #ffca28 0%, #ffc107 50%, #ffb300 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(255, 193, 7, 0.5), 0 4px 8px rgba(0, 0, 0, 0.15);
+            }
+            
+            .select-torrent-btn:hover::before {
+                left: 100%;
+            }
+        }
+
+        .select-torrent-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(255, 193, 7, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <h1>Torran</h1>
+    </div>
+
+    <form method="post" class="search-form" id="searchForm">
+        <input type="hidden" name="action" value="search_tmdb" id="actionInput">
+        <div class="form-group">
+            <input type="text" id="searchQuery" name="query" placeholder="Enter movie or TV show name" required class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">
+            Search
+        </button>
+    </form>
+
+    <div class="loading" id="loading">
+        <i class="fas fa-spinner fa-spin"></i> Searching...
+    </div>
+
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage">
+        <div class="success-message-content" id="successMessageContent"></div>
+    </div>
+
+    <div class="results-container" id="resultsContainer"></div>
+
+    <script>
+        // Set focus on the input box when the page loads
+        const searchInput = document.getElementById('searchQuery');
+        let hasFocused = false;
+        
+        function attemptFocus() {
+            if (searchInput && !hasFocused) {
+                searchInput.focus();
+                // Check if focus was successful
+                if (document.activeElement === searchInput) {
+                    hasFocused = true;
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+        
+        // Aggressive focus attempts for mobile
+        window.addEventListener('DOMContentLoaded', function() {
+            if (searchInput) {
+                // Try immediate focus
+                attemptFocus();
+                
+                // Try multiple times with increasing delays (mobile browsers sometimes need this)
+                const delays = [100, 200, 400, 600, 1000];
+                delays.forEach(function(delay) {
+                    setTimeout(function() {
+                        if (!hasFocused) {
+                            attemptFocus();
+                        }
+                    }, delay);
+                });
+                
+                // Also try on first user interaction as backup
+                function focusOnInteraction(e) {
+                    if (!hasFocused) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (attemptFocus()) {
+                            document.removeEventListener('touchstart', focusOnInteraction, true);
+                            document.removeEventListener('touchend', focusOnInteraction, true);
+                            document.removeEventListener('click', focusOnInteraction, true);
+                        }
+                    }
+                }
+                
+                // Listen for first interaction with capture phase
+                document.addEventListener('touchstart', focusOnInteraction, { once: true, capture: true });
+                document.addEventListener('touchend', focusOnInteraction, { once: true, capture: true });
+                document.addEventListener('click', focusOnInteraction, { once: true, capture: true });
+            }
+        });
+        
+        // Also try when page becomes visible (for when user switches back to tab)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && !hasFocused && searchInput) {
+                setTimeout(function() {
+                    attemptFocus();
+                }, 100);
+            }
+        });
+
+
+        let currentTmdbResults = [];
+        let currentTorrentResults = [];
+
+        // Handle form submission
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchQuery').value.trim();
+            const action = document.getElementById('actionInput').value;
+            
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+
+            // Close keyboard on mobile by blurring the input
+            const searchInput = document.getElementById('searchQuery');
+            if (searchInput) {
+                searchInput.blur();
+            }
+
+            // Show loading, hide results and messages
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('resultsContainer').innerHTML = '';
+            hideError();
+            hideSuccess();
+            document.getElementById('searchForm').querySelector('.btn').disabled = true;
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('action', action);
+            formData.append('query', query);
+
+            fetch('/files/torran', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('searchForm').querySelector('.btn').disabled = false;
+
+                if (data.success && data.results && data.results.length > 0) {
+                    if (action === 'search_tmdb') {
+                        displayTmdbResults(data.results);
+                        // Check Plex status asynchronously after displaying results
+                        checkPlexStatusAsync(data.results);
+                    } else {
+                        displayTorrentResults(data.results);
+                    }
+                } else {
+                    showError(data.error || 'No results found');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('searchForm').querySelector('.btn').disabled = false;
+                console.error('Search request failed:', error);
+                showError('Network error: ' + error.message);
+            });
+        });
+
+        function displayTmdbResults(results) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            currentTmdbResults = results; // Store results globally
+
+            if (results.length === 0) {
+                showError('No results found');
+                return;
+            }
+
+            results.forEach((result, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'tmdb-result-item';
+                resultDiv.id = `tmdb-result-${index}`;
+                resultDiv.setAttribute('data-tmdb-id', result.tmdb_id);
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'tmdb-result-name';
+                nameDiv.textContent = result.name;
+                
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'tmdb-result-meta';
+                
+                const typeSpan = document.createElement('span');
+                typeSpan.className = `tmdb-result-type ${result.type.toLowerCase()}`;
+                typeSpan.textContent = result.type;
+                
+                const yearSpan = document.createElement('span');
+                yearSpan.className = 'tmdb-result-year';
+                yearSpan.textContent = result.year;
+                
+                metaDiv.appendChild(typeSpan);
+                metaDiv.appendChild(yearSpan);
+                
+                // Add season count for series
+                if (result.type === 'Series' && result.num_seasons) {
+                    const seasonsSpan = document.createElement('span');
+                    seasonsSpan.className = 'tmdb-result-seasons';
+                    seasonsSpan.textContent = ` • ${result.num_seasons} ${result.num_seasons === 1 ? 'season' : 'seasons'}`;
+                    metaDiv.appendChild(seasonsSpan);
+                }
+                
+                resultDiv.appendChild(nameDiv);
+                resultDiv.appendChild(metaDiv);
+                
+                // Add top cast if available
+                if (result.top_cast && result.top_cast.length > 0) {
+                    const castDiv = document.createElement('div');
+                    castDiv.className = 'tmdb-result-cast';
+                    const castLabel = document.createElement('span');
+                    castLabel.className = 'tmdb-result-cast-label';
+                    castLabel.textContent = 'Starring:';
+                    castDiv.appendChild(castLabel);
+                    castDiv.appendChild(document.createTextNode(result.top_cast.join(', ')));
+                    resultDiv.appendChild(castDiv);
+                }
+                
+                // Add click handler to search Torran with this result
+                resultDiv.addEventListener('click', function() {
+                    searchTorranFromTmdb(result);
+                });
+                
+                container.appendChild(resultDiv);
+            });
+        }
+
+        function checkPlexStatusAsync(results) {
+            // Check Plex status asynchronously and update UI
+            fetch('/files/torran/check_plex', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ items: results })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.plex_status) {
+                    // Update each result card with Plex icon if found
+                    results.forEach((result) => {
+                        const tmdbId = result.tmdb_id;
+                        if (data.plex_status[tmdbId]) {
+                            const resultDiv = document.querySelector(`[data-tmdb-id="${tmdbId}"]`);
+                            if (resultDiv && !resultDiv.querySelector('.plex-icon')) {
+                                const plexIcon = document.createElement('div');
+                                plexIcon.className = 'plex-icon';
+                                plexIcon.title = 'Available in Plex';
+                                const img = document.createElement('img');
+                                img.src = '/static/icons/plex-icon.webp';
+                                img.alt = 'Available in Plex';
+                                plexIcon.appendChild(img);
+                                resultDiv.insertBefore(plexIcon, resultDiv.firstChild);
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error checking Plex status:', error);
+                // Fail silently - Plex check is not critical
+            });
+        }
+
+        function searchTorranFromTmdb(tmdbResult) {
+            // Build search query: "Name Year"
+            const searchQuery = `${tmdbResult.name} ${tmdbResult.year}`;
+            
+            // Update form and submit
+            document.getElementById('searchQuery').value = searchQuery;
+            document.getElementById('actionInput').value = 'search';
+            
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('resultsContainer').innerHTML = '';
+            hideError();
+            hideSuccess();
+            document.getElementById('searchForm').querySelector('.btn').disabled = true;
+
+            const formData = new FormData();
+            formData.append('action', 'search');
+            formData.append('query', searchQuery);
+
+            fetch('/files/torran', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('searchForm').querySelector('.btn').disabled = false;
+                document.getElementById('actionInput').value = 'search_tmdb'; // Reset to TMDB search
+
+                if (data.success && data.results && data.results.length > 0) {
+                    displayTorrentResults(data.results);
+                } else {
+                    showError(data.error || 'No torrent results found');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('searchForm').querySelector('.btn').disabled = false;
+                document.getElementById('actionInput').value = 'search_tmdb'; // Reset to TMDB search
+                console.error('Torrent search request failed:', error);
+                showError('Network error: ' + error.message);
+            });
+        }
+
+        function displayTorrentResults(results) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            currentTorrentResults = results; // Store results globally
+
+            results.forEach((result, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result-item';
+                resultDiv.id = `result-${index}`;
+                
+                // Escape HTML in title
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'result-title';
+                titleDiv.textContent = result.title;
+                
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'result-details';
+                detailsDiv.innerHTML = `
+                    <div class="result-info">Size: ${result.size_gb} GB</div>
+                    <div class="result-info">Grabs: ${result.grabs}</div>
+                    <div class="result-info">Seeders: ${result.seeders || 'N/A'}</div>
+                `;
+                
+                const selectBtn = document.createElement('button');
+                selectBtn.className = 'select-torrent-btn';
+                selectBtn.setAttribute('data-index', index);
+                selectBtn.textContent = 'Select This Torrent';
+                
+                const categorySelector = document.createElement('div');
+                categorySelector.className = 'category-selector';
+                categorySelector.id = `category-${index}`;
+                
+                const categoryLabel = document.createElement('div');
+                categoryLabel.style.cssText = 'margin-bottom: 10px; color: #fff; font-weight: bold;';
+                categoryLabel.textContent = 'Select Category:';
+                
+                const categoryButtons = document.createElement('div');
+                categoryButtons.className = 'category-buttons';
+                
+                ['movies', 'shows', 'kid_movies', 'kid_shows'].forEach(cat => {
+                    const btn = document.createElement('button');
+                    btn.className = 'category-btn';
+                    btn.setAttribute('data-index', index);
+                    btn.setAttribute('data-category', cat);
+                    btn.textContent = cat.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    categoryButtons.appendChild(btn);
+                });
+                
+                categorySelector.appendChild(categoryLabel);
+                categorySelector.appendChild(categoryButtons);
+                
+                resultDiv.appendChild(titleDiv);
+                resultDiv.appendChild(detailsDiv);
+                resultDiv.appendChild(selectBtn);
+                resultDiv.appendChild(categorySelector);
+                
+                container.appendChild(resultDiv);
+            });
+        }
+
+        // Handle select torrent button clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('select-torrent-btn')) {
+                const index = parseInt(e.target.getAttribute('data-index'));
+                // Hide all category selectors
+                document.querySelectorAll('.category-selector').forEach(sel => {
+                    sel.classList.remove('show');
+                });
+                
+                // Show category selector for this torrent
+                const categorySelector = document.getElementById(`category-${index}`);
+                if (categorySelector) {
+                    categorySelector.classList.add('show');
+                    categorySelector.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+            
+            if (e.target.classList.contains('category-btn')) {
+                const index = parseInt(e.target.getAttribute('data-index'));
+                const category = e.target.getAttribute('data-category');
+                if (currentTorrentResults && currentTorrentResults[index]) {
+                    const magnetUri = currentTorrentResults[index].magnet_uri;
+                    addTorrent(index, category, magnetUri, e.target);
+                }
+            }
+        });
+
+        function addTorrent(index, category, magnetUri, clickedButton) {
+            // clickedButton is passed as parameter
+            const originalButtonText = clickedButton.textContent;
+            const categorySelector = document.getElementById(`category-${index}`);
+            
+            // Disable all category buttons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            // Show processing state on clicked button
+            clickedButton.classList.add('processing');
+            clickedButton.innerHTML = 'Adding...';
+            
+            // Show immediate feedback
+            if (categorySelector) {
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.id = `feedback-${index}`;
+                feedbackDiv.style.cssText = 'margin-top: 10px; color: #ffc107; font-weight: bold; text-align: center;';
+                feedbackDiv.textContent = 'Adding torrent to qBittorrent...';
+                categorySelector.appendChild(feedbackDiv);
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'add_torrent');
+            formData.append('torrent_index', index);
+            formData.append('category', category);
+            formData.append('magnet_uri', magnetUri);
+
+            fetch('/files/torran', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Remove processing state
+                clickedButton.classList.remove('processing');
+                
+                // Re-enable buttons
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.disabled = false;
+                    // Restore original text
+                    if (btn === clickedButton) {
+                        btn.innerHTML = originalButtonText;
+                    }
+                });
+                
+                // Remove feedback div
+                const feedbackDiv = document.getElementById(`feedback-${index}`);
+                if (feedbackDiv) {
+                    feedbackDiv.remove();
+                }
+
+                if (data.success) {
+                    showSuccess(data.message || `Torrent added successfully to category: ${category}`);
+                    // Hide category selector
+                    if (categorySelector) {
+                        categorySelector.classList.remove('show');
+                    }
+                    // Clear search results after a delay
+                    setTimeout(() => {
+                        document.getElementById('resultsContainer').innerHTML = '';
+                        document.getElementById('searchQuery').value = '';
+                        document.getElementById('searchQuery').focus();
+                    }, 2000);
+                } else {
+                    showError(data.error || 'Failed to add torrent');
+                }
+            })
+            .catch(error => {
+                // Remove processing state
+                clickedButton.classList.remove('processing');
+                
+                // Re-enable buttons
+                document.querySelectorAll('.category-btn').forEach(btn => {
+                    btn.disabled = false;
+                    // Restore original text
+                    if (btn === clickedButton) {
+                        btn.innerHTML = originalButtonText;
+                    }
+                });
+                
+                // Remove feedback div
+                const feedbackDiv = document.getElementById(`feedback-${index}`);
+                if (feedbackDiv) {
+                    feedbackDiv.remove();
+                }
+                
+                console.error('Add torrent request failed:', error);
+                showError('Network error: ' + error.message);
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            setTimeout(() => {
+                hideError();
+            }, 5000);
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            const successContent = document.getElementById('successMessageContent');
+            
+            // Clear previous content
+            successContent.innerHTML = '';
+            
+            // Add message text
+            const messageText = document.createElement('div');
+            messageText.textContent = message;
+            messageText.style.marginBottom = '10px';
+            successContent.appendChild(messageText);
+            
+            // Add qBittorrent link button
+            const qbtButton = document.createElement('a');
+            qbtButton.href = 'http://192.168.0.182:8080/';
+            qbtButton.target = '_blank';
+            qbtButton.className = 'qbt-link-btn';
+            qbtButton.innerHTML = '<i class="fa fa-external-link-alt"></i> Open qBittorrent';
+            successContent.appendChild(qbtButton);
+            
+            successDiv.classList.add('show');
+            setTimeout(() => {
+                hideSuccess();
+            }, 10000); // Increased timeout to 10 seconds so user has time to click the button
+        }
+
+        function hideSuccess() {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.classList.remove('show');
+            const successContent = document.getElementById('successMessageContent');
+            successContent.innerHTML = '';
+        }
+    </script>
+</body>
+</html>

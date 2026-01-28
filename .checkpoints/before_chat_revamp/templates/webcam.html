@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Camera Stream</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        video {
+            width: 95%;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <video id="video" controls autoplay></video>
+    <script>
+        var video = document.getElementById('video');
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            // Update the source to the reverse proxy URL
+            hls.loadSource('https://blandfx.com/camera/');
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play();
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = 'https://blandfx.com/camera/';
+            video.addEventListener('loadedmetadata', function() {
+                video.play();
+            });
+        } else {
+            console.error("HLS is not supported in this browser.");
+        }
+    </script>
+</body>
+</html> 

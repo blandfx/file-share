@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Edit Note' if filename else 'New Note' }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 1em;
+            box-sizing: border-box;
+            align-items: stretch;
+            width: 100%;
+            max-width: 100vw; /* Ensure container doesn't exceed viewport width */
+            overflow-x: hidden; /* Prevent horizontal overflow */
+        }
+        
+        /* Desktop: comfortable width for writing */
+        @media (min-width: 769px) {
+            .container {
+                max-width: 1000px;
+                width: 80%;
+                margin: 0 auto;
+            }
+        }
+        
+        .nav-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 1em;
+            margin-bottom: 1em;
+        }
+
+        .nav-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 0 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+            width: auto;
+            height: 48px;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .nav-button:hover {
+            background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-button i {
+            margin-right: 0;
+        }
+        
+        /* Show text on desktop */
+        .nav-text {
+            margin-left: 6px;
+        }
+        
+        /* Mobile input adjustments */
+        @media (max-width: 768px) {
+            input[type="text"] {
+                max-width: 300px;
+            }
+
+
+        }
+        
+        form {
+            background-color: #2b2b2b;
+            border-radius: 8px;
+            padding: 1.5em;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box; /* Include padding in width calculation */
+            flex-shrink: 0;
+        }
+        
+        .form-header {
+            margin-bottom: 1em;
+        }
+        
+        .header-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 48px;
+        }
+        
+        input[type="text"], textarea {
+            background-color: #3c3c3c;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 0.8em;
+            margin-bottom: 1em;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        
+        input[type="text"] {
+            font-weight: bold;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            height: 48px;
+            text-align: center;
+            box-sizing: border-box;
+            grid-column: 2;
+            width: 100%;
+            max-width: 400px;
+            justify-self: center;
+            margin: 0;
+        }
+        
+        /* Animated save indicator for filename */
+        input[type="text"].saved {
+            border-color: #28a745 !important;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+        }
+        
+        @keyframes saveGlow {
+            0% { 
+                border-color: #28a745;
+                box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.3);
+            }
+            50% { 
+                border-color: #20c997;
+                box-shadow: 0 0 8px rgba(32, 201, 151, 0.5);
+            }
+            100% { 
+                border-color: #555;
+                box-shadow: none;
+            }
+        }
+        
+        input[type="text"].save-animation {
+            animation: saveGlow 1.5s ease-out;
+        }
+        
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 200px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        
+        .content-editor {
+            background-color: #3c3c3c;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 5px;
+            padding: 0.8em;
+            margin-bottom: 1em;
+            min-height: 200px;
+            max-height: 60vh;
+            line-height: 1.6;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            outline: none;
+            font-family: inherit;
+            font-size: 1rem;
+            width: 100%;
+            max-width: none;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        
+        .content-editor:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .content-editor[data-placeholder]:empty::before {
+            content: attr(data-placeholder);
+            color: #888;
+            font-style: italic;
+        }
+
+        .link-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.2em;
+            height: 1.2em;
+            margin-left: 2px;
+            background-color: rgba(74, 144, 226, 0.2);
+            color: #4a90e2;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8em;
+            vertical-align: middle;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .link-icon:hover {
+            background-color: #4a90e2;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5em;
+                width: 100%;
+                max-width: 100vw;
+            }
+            
+            form {
+                padding: 1em;
+                margin: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            /* Ensure content editor doesn't overflow on mobile */
+            .content-editor {
+                min-height: 150px;
+                max-height: calc(100vh - 200px);
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            /* Ensure all inputs fit within mobile viewport */
+            input[type="text"], textarea {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            .header-row {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            input[type="text"] {
+                max-width: 100%;
+                min-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form action="{{ url_for('submit_text') }}" method="post" id="noteForm">
+            <div class="form-header">
+                <div class="header-row">
+                    <input type="hidden" name="original_filename" value="{{ filename }}">
+                    <input type="text" name="new_filename" id="filenameInput" value="{{ filename or '' }}" placeholder="Enter filename..." {% if 'note_' in filename %}readonly{% endif %}>
+                </div>
+            </div>
+
+            <div class="content-container">
+                <div id="contentInput" class="content-editor" contenteditable="true" data-placeholder="Enter your note here...">{{ content }}</div>
+                <textarea name="content" id="hiddenTextarea" style="display: none;">{{ content }}</textarea>
+            </div>
+
+            <div class="nav-button-container">
+                <a href="{{ url_for('list_files') }}" class="nav-button">
+                    <i class="fa fa-arrow-left"></i><span class="nav-text"> Back to Files</span>
+                </a>
+            </div>
+            
+
+        </form>
+    </div>
+
+    <script>
+        // Auto-save functionality
+        let autoSaveTimeout;
+        let lastSavedContent = '';
+        let lastSavedFilename = '';
+        
+        const filenameInput = document.getElementById('filenameInput');
+        const contentInput = document.getElementById('contentInput');
+        const hiddenTextarea = document.getElementById('hiddenTextarea');
+        const form = document.getElementById('noteForm');
+        const originalFilenameInput = document.querySelector('input[name="original_filename"]');
+        
+        // URL detection
+        // Improved regex that handles URLs at end of string or followed by punctuation
+        const urlRegex = /(https?:\/\/[^\s\n\r"']+[^\s\n\r"'.?!,:;])/g;
+        let isProcessing = false;
+        let urlProcessTimeout;
+
+        // Debounced URL processing function
+        function debounceUrlProcessing(delay = 500) {
+            clearTimeout(urlProcessTimeout);
+            urlProcessTimeout = setTimeout(() => {
+                processUrls();
+            }, delay);
+        }
+
+        // Get plain text for saving (strips the link icons)
+        function getPlainText(element) {
+            let text = '';
+            // Clone the node so we can manipulate it without affecting the display
+            const clone = element.cloneNode(true);
+            
+            // Remove all link icons from the clone
+            const icons = clone.querySelectorAll('.link-icon');
+            icons.forEach(icon => icon.remove());
+            
+            // Now get the text content preserving lines
+            // We need to walk the tree to handle different browser behaviors with contenteditable
+            function walk(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    text += node.textContent;
+                } else if (node.nodeName === 'BR') {
+                    text += '\n';
+                } else if (node.nodeName === 'DIV' || node.nodeName === 'P') {
+                    // Block elements usually mean a new line
+                    if (text && !text.endsWith('\n')) text += '\n';
+                    // Process children
+                    for (let child of node.childNodes) {
+                        walk(child);
+                    }
+                    // End of block element
+                    if (node.nextSibling && !text.endsWith('\n')) text += '\n';
+                } else {
+                    for (let child of node.childNodes) {
+                        walk(child);
+                    }
+                }
+            }
+            
+            walk(clone);
+            return text;
+        }
+
+        function processUrls() {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const selection = window.getSelection();
+            let savedRange = null;
+            if (selection.rangeCount > 0 && contentInput.contains(selection.anchorNode)) {
+                savedRange = {
+                    node: selection.anchorNode,
+                    offset: selection.anchorOffset
+                };
+            }
+
+            // Clean up orphaned or invalid link icons first
+            const existingIcons = contentInput.querySelectorAll('.link-icon');
+            existingIcons.forEach(icon => {
+                // If previous sibling is not text or doesn't end with a URL, remove it
+                const prev = icon.previousSibling;
+                if (!prev || prev.nodeType !== Node.TEXT_NODE) {
+                    icon.remove();
+                } else {
+                    // Check if the text immediately preceding is a URL
+                    const text = prev.textContent;
+                    const matches = text.match(urlRegex);
+                    if (!matches) {
+                        icon.remove();
+                    } else {
+                        // Check if the icon is positioned right after the last match
+                        const lastMatch = matches[matches.length - 1];
+                        if (!text.trim().endsWith(lastMatch)) {
+                            icon.remove();
+                        }
+                    }
+                }
+            });
+
+            // Find text nodes containing URLs that don't have a link icon yet
+            const walker = document.createTreeWalker(
+                contentInput,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            const nodesToProcess = [];
+            let node;
+            while (node = walker.nextNode()) {
+                if (node.parentElement.classList.contains('link-icon')) continue; // Skip text inside icons
+                
+                const text = node.textContent;
+                let match;
+                // Reset regex state
+                urlRegex.lastIndex = 0;
+                
+                // Find all matches in this node
+                while ((match = urlRegex.exec(text)) !== null) {
+                    const url = match[0];
+                    const matchEndIndex = match.index + url.length;
+                    
+                    // Check if this specific match instance already has a link icon following it
+                    // We need to look at the DOM relative to this text node split point
+                    // This is tricky because splitting nodes invalidates the walker
+                    // So we just collect nodes to process and handle them carefully
+                    nodesToProcess.push({
+                        node: node,
+                        url: url,
+                        index: match.index,
+                        endIndex: matchEndIndex
+                    });
+                }
+            }
+
+            // Process nodes in reverse order to avoid index invalidation issues
+            // (though we are only processing one match per node in this simple pass to be safe)
+            for (let i = nodesToProcess.length - 1; i >= 0; i--) {
+                const item = nodesToProcess[i];
+                const textNode = item.node;
+                
+                // Verify the node is still in the DOM and content matches
+                if (!textNode.parentNode) continue;
+                
+                // Check if there's already a link icon immediately following this position
+                // This is a simplification; for multiple URLs in one text node, we'd need more complex logic
+                // For now, let's just check if the NEXT sibling is a link icon
+                let alreadyLinked = false;
+                if (textNode.nextSibling && 
+                    textNode.nextSibling.nodeType === Node.ELEMENT_NODE && 
+                    textNode.nextSibling.classList.contains('link-icon')) {
+                    
+                    const iconHref = textNode.nextSibling.href;
+                    if (iconHref === item.url) {
+                        alreadyLinked = true;
+                    }
+                }
+                
+                // Also check if we are splitting a node that was already processed in this loop
+                // (Simple prevention: only process if it ends with the URL, or we accept we might split multiple times)
+                
+                if (!alreadyLinked) {
+                    // We need to split the text node at the end of the URL
+                    // ... text http://url.com [here] text ...
+                    
+                    // If the URL is in the middle, split into: [prefix+url] [suffix]
+                    if (item.endIndex < textNode.textContent.length) {
+                        textNode.splitText(item.endIndex);
+                    }
+                    
+                    // Now textNode ends with the URL (or is just the prefix + URL)
+                    // But wait, if there was text BEFORE the URL, we technically have [prefix] [url] [suffix]
+                    // We want the icon AFTER [url].
+                    
+                    // Let's simplify: verify the text node ends with the URL. 
+                    // If not (e.g. "Visit http://site.com for info"), we split at end of URL.
+                    // The original 'textNode' becomes "Visit http://site.com". 
+                    // The next sibling is " for info".
+                    // We insert icon after 'textNode'.
+                    
+                    // However, if we have multiple URLs "http://a.com and http://b.com",
+                    // the regex found both. We are processing reverse, so we found http://b.com first.
+                    // split at end of b.com. Insert icon.
+                    // Then later loop iteration finds http://a.com. Split at end of a.com. Insert icon.
+                    // This works!
+                    
+                    // Create the icon
+                    const icon = document.createElement('a');
+                    icon.href = item.url;
+                    icon.className = 'link-icon';
+                    icon.target = '_blank';
+                    icon.rel = 'noopener noreferrer';
+                    icon.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+                    icon.contentEditable = "false"; // Make icon uneditable
+                    
+                    // Insert after textNode
+                    if (textNode.nextSibling) {
+                        textNode.parentNode.insertBefore(icon, textNode.nextSibling);
+                    } else {
+                        textNode.parentNode.appendChild(icon);
+                    }
+                }
+            }
+
+            // Restore selection if possible
+            if (savedRange) {
+                try {
+                    const newSelection = window.getSelection();
+                    newSelection.removeAllRanges();
+                    const newRange = document.createRange();
+                    newRange.setStart(savedRange.node, savedRange.offset);
+                    newRange.collapse(true);
+                    newSelection.addRange(newRange);
+                } catch (e) {
+                    // Selection restoration might fail if nodes were heavily modified
+                    // This is acceptable as we debounce processing
+                }
+            }
+            
+            isProcessing = false;
+        }
+
+        // Initial formatting to insert icons into loaded content
+        function initialFormat() {
+            // Wait a moment for DOM to settle
+            setTimeout(() => {
+                processUrls();
+            }, 100);
+        }
+
+        // Handle input events
+        contentInput.addEventListener('input', function(e) {
+            // Update hidden textarea for auto-save
+            hiddenTextarea.value = getPlainText(contentInput);
+
+            // Only process URLs on delimiters to avoid interruptions
+            if (e.data === ' ' || 
+                e.inputType === 'insertParagraph' || 
+                e.inputType === 'insertLineBreak' || 
+                e.inputType === 'insertFromPaste' ||
+                (e.data && e.data.match(/[\s\n]/))) {
+                
+                debounceUrlProcessing(200);
+            }
+
+            // Auto-save trigger
+            clearTimeout(autoSaveTimeout);
+            const autoSaveDelay = lastKeyWasEnter ? 2000 : 1000;
+            autoSaveTimeout = setTimeout(autoSave, autoSaveDelay);
+        });
+        
+        // Track enter key presses
+        let lastKeyWasEnter = false;
+        contentInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                // Let default contenteditable behavior handle Enter (creates divs or brs)
+                // But track it for autosave delay
+                lastKeyWasEnter = true;
+                setTimeout(() => lastKeyWasEnter = false, 1500);
+                
+                // Trigger processing slightly later
+                debounceUrlProcessing(500);
+            }
+        });
+        
+        // Handle blur
+        contentInput.addEventListener('blur', function() {
+            hiddenTextarea.value = getPlainText(contentInput);
+            debounceUrlProcessing(100);
+        });
+        
+        // Function to auto-save
+        function autoSave() {
+            if (lastKeyWasEnter) {
+                clearTimeout(autoSaveTimeout);
+                autoSaveTimeout = setTimeout(autoSave, 1000);
+                return;
+            }
+            
+            const currentContent = hiddenTextarea.value;
+            const currentFilename = filenameInput.value;
+            
+            if (currentContent !== lastSavedContent || currentFilename !== lastSavedFilename) {
+                
+                // Create form data for auto-save
+                const formData = new FormData();
+                const originalFilename = filenameInput.getAttribute('data-original-filename') || originalFilenameInput.value;
+                formData.append('original_filename', originalFilename);
+                formData.append('new_filename', currentFilename);
+                formData.append('content', currentContent);
+                formData.append('auto_save', 'true');
+                
+                // Send auto-save request
+                fetch('{{ url_for("submit_text") }}', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        lastSavedContent = currentContent;
+                        lastSavedFilename = currentFilename;
+
+                        if (data.filename && !filenameInput.getAttribute('data-original-filename')) {
+                            filenameInput.setAttribute('data-original-filename', data.filename);
+                        }
+
+                        showSaveAnimation();
+                    } else {
+                        showSaveError();
+                    }
+                })
+                .catch(error => {
+                    showSaveError();
+                });
+            }
+        }
+        
+        // Function to show save animation
+        function showSaveAnimation() {
+            filenameInput.classList.remove('save-animation', 'saved');
+            filenameInput.offsetHeight;
+            filenameInput.classList.add('save-animation');
+            setTimeout(() => {
+                filenameInput.classList.remove('save-animation');
+            }, 1500);
+        }
+        
+        // Function to show save error
+        function showSaveError() {
+            filenameInput.style.borderColor = '#dc3545';
+            filenameInput.style.boxShadow = '0 0 0 2px rgba(220, 53, 69, 0.3)';
+            setTimeout(() => {
+                filenameInput.style.borderColor = '';
+                filenameInput.style.boxShadow = '';
+            }, 2000);
+        }
+        
+        // Set up auto-save on filename changes
+        filenameInput.addEventListener('input', () => {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(autoSave, 1000);
+        });
+        
+        // Generate default filename for new notes
+        function generateTimestampFilename() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            return `note_${year}-${month}-${day}_${hours}-${minutes}.txt`;
+        }
+        
+        // Initialize
+        setTimeout(() => {
+            initialFormat();
+            
+            // Populate hidden textarea initially
+            hiddenTextarea.value = getPlainText(contentInput);
+            
+            lastSavedContent = hiddenTextarea.value;
+            lastSavedFilename = filenameInput.value;
+
+            if (!filenameInput.value || filenameInput.value.trim() === '') {
+                filenameInput.value = generateTimestampFilename();
+                lastSavedFilename = filenameInput.value;
+            }
+        }, 100);
+    </script>
+</body>
+</html>
