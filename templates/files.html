@@ -605,6 +605,35 @@
                 display: flex;
             }
         }
+
+        /* File Preview Popup */
+        #file-preview-popup {
+            position: fixed;
+            display: none;
+            z-index: 10000;
+            background: #2d2d2d;
+            border: 1px solid #4AA3DF;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            width: 300px;
+            max-height: 300px;
+            overflow: hidden;
+            pointer-events: none; /* Let clicks pass through */
+        }
+        #file-preview-popup img, #file-preview-popup video {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 300px;
+            object-fit: contain;
+            background-color: #000;
+        }
+        #file-preview-popup .preview-error {
+            padding: 10px;
+            color: #ccc;
+            font-size: 12px;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -654,10 +683,17 @@
             <div class="file-name" title="{{ file.name }}">
                 {% if file.edit_url %}
                 <span data-filename="{{ file.name }}"
-                    onclick="window.location.href='{{ file.edit_url }}'">{{ file.name
+                    onclick="window.location.href='{{ file.edit_url }}'"
+                    onmouseenter="showPreview(event, '{{ file.name }}')"
+                    onmousemove="movePreview(event)"
+                    onmouseleave="hidePreview()">{{ file.name
                     }}</span>
                 {% else %}
-                <span data-filename="{{ file.name }}" onclick="openModal('{{ file.name }}')">{{ file.name }}</span>
+                <span data-filename="{{ file.name }}" 
+                    onclick="openModal('{{ file.name }}')"
+                    onmouseenter="showPreview(event, '{{ file.name }}')"
+                    onmousemove="movePreview(event)"
+                    onmouseleave="hidePreview()">{{ file.name }}</span>
                 {% endif %}
             </div>
             <div class="file-details">
@@ -758,6 +794,10 @@
             <div id="uploadProgressFill" class="upload-progress-fill"></div>
         </div>
     </div>
+
+    <!-- File Preview Popup -->
+    <div id="file-preview-popup"></div>
+
     <script>
         function copyToClipboard(path, btnElement) {
             const fullUrl = `${window.location.origin}/media/${path}`;
@@ -769,6 +809,70 @@
             }, function (err) {
                 console.error('Could not copy text: ', err);
             });
+        }
+
+        // File Preview Logic
+        const previewPopup = document.getElementById('file-preview-popup');
+        let previewTimeout;
+
+        function showPreview(event, filename) {
+            // Clear any pending hide
+            clearTimeout(previewTimeout);
+            
+            const ext = filename.split('.').pop().toLowerCase();
+            const mediaUrl = `/media/${filename}`;
+            const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'ico', 'svg', 'bmp'];
+            const videoExts = ['mp4', 'webm', 'ogg', 'mov', 'm4v'];
+
+            let content = '';
+            
+            if (imageExts.includes(ext)) {
+                content = `<img src="${mediaUrl}" alt="Preview" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'preview-error\\'>Image invalid</div>'">`;
+            } else if (videoExts.includes(ext)) {
+                content = `<video src="${mediaUrl}" autoplay muted loop playsinline preload="metadata" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'preview-error\\'>Cannot preview</div>'"></video>`;
+            } else {
+                // Not supported for preview
+                return; 
+            }
+
+            previewPopup.innerHTML = content;
+            previewPopup.style.display = 'block';
+            movePreview(event);
+        }
+
+        function movePreview(event) {
+            if (previewPopup.style.display === 'none') return;
+            
+            const offset = 20;
+            let left = event.clientX + offset;
+            let top = event.clientY + offset;
+            
+            // Boundary checks
+            const rect = previewPopup.getBoundingClientRect();
+            
+            // Check right edge
+            if (left + rect.width > window.innerWidth) {
+                left = event.clientX - rect.width - offset;
+            }
+            
+            // Check bottom edge
+            if (top + rect.height > window.innerHeight) {
+                top = event.clientY - rect.height - offset;
+            }
+            
+            // Ensure it doesn't go off top/left
+            if (left < 0) left = 0;
+            if (top < 0) top = 0;
+            
+            previewPopup.style.left = left + 'px';
+            previewPopup.style.top = top + 'px';
+        }
+
+        function hidePreview() {
+             previewTimeout = setTimeout(() => {
+                previewPopup.style.display = 'none';
+                previewPopup.innerHTML = '';
+             }, 50);
         }
 
         async function createVideoElement(fileUrl) {
