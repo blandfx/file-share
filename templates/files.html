@@ -678,74 +678,7 @@
         </div>
     </div>
     <ul id="filesList">
-        {% for file in files %}
-        <li class="file-item">
-            <div class="file-name" title="{{ file.name }}">
-                {% if file.edit_url %}
-                <span data-filename="{{ file.name }}"
-                    onclick="window.location.href='{{ file.edit_url }}'"
-                    onmouseenter="showPreview(event, '{{ file.name }}')"
-                    onmousemove="movePreview(event)"
-                    onmouseleave="hidePreview()">{{ file.name
-                    }}</span>
-                {% else %}
-                <span data-filename="{{ file.name }}" 
-                    onclick="openModal('{{ file.name }}')"
-                    onmouseenter="showPreview(event, '{{ file.name }}')"
-                    onmousemove="movePreview(event)"
-                    onmouseleave="hidePreview()">{{ file.name }}</span>
-                {% endif %}
-            </div>
-            <div class="file-details">
-                <div class="file-size">{{ format_size(file.size) }}</div>
-
-                <!-- Collapsible button for mobile -->
-                <button class="collapse-toggle" title="More Actions" onclick="toggleFileActions(this)">
-                </button>
-
-                <!-- Expanded actions menu for mobile -->
-                <div class="file-actions-expanded">
-                    <div class="file-size-mobile">{{ format_size(file.size) }}</div>
-                    <button class="rename-button-mobile" title="Rename File" style="background-color: #ffc107;">
-                        <i class="fas fa-edit"></i>
-                        Rename
-                    </button>
-                    <button class="copy-button-mobile" title="Copy Link"
-                        onclick="copyToClipboard('{{ file.name }}', this)">
-                        <i class="fas fa-copy"></i>
-                        Copy Link
-                    </button>
-                    <a href="/media/{{ file.name }}" download class="download-button-mobile" title="Download File">
-                        <button style="background-color: #28a745;">
-                            <i class="fas fa-download"></i>
-                            Download
-                        </button>
-                    </a>
-                    <button class="delete-button-mobile" style="background-color: #ff0707;" title="Delete File"
-                        onclick="deleteFile('{{ file.name }}', this)">
-                        <i class="fas fa-times"></i>
-                        Delete
-                    </button>
-                </div>
-
-                <!-- Desktop buttons -->
-                <button class="rename-button" title="Rename File" style="background-color: #ffc107;">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="copy-button" title="Copy Link" onclick="copyToClipboard('{{ file.name }}', this)">
-                    <i class="fas fa-copy"></i>
-                </button>
-                <a href="/media/{{ file.name }}" download class="download-button" title="Download File">
-                    <button style="background-color: #28a745;">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </a>
-                <button class="delete-button" title="Delete File" onclick="deleteFile('{{ file.name }}', this)">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </li>
-        {% endfor %}
+        {% include 'file_list_items.html' %}
     </ul>
     <div id="fileCount" style="text-align: center; margin: 20px 0; color: #aaa; font-size: 0.9em;">
         Total files: {{ files|length }}
@@ -2471,6 +2404,46 @@
                 });
             })();
         });
+    </script>
+    <script>
+        // Poll for updates
+        let lastUpdateTimestamp = {{ last_update_timestamp|default(0) }};
+        
+        function checkForUpdates() {
+            fetch(`/files/check_updates?last_update=${lastUpdateTimestamp}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.updated) {
+                        lastUpdateTimestamp = data.timestamp;
+                        // Fetch the new HTML content
+                        fetch('/files/content')
+                            .then(response => response.text())
+                            .then(html => {
+                                const list = document.getElementById('filesList');
+                                list.innerHTML = html;
+                                
+                                // Update count
+                                const countDiv = document.getElementById('fileCount');
+                                if (countDiv) {
+                                    // Extract count from response or just count li elements
+                                    const parser = new DOMParser();
+                                    const doc = parser.parseFromString(html, 'text/html');
+                                    const count = doc.querySelectorAll('li').length;
+                                    countDiv.textContent = `Total files: ${count}`;
+                                }
+                                
+                                // Re-apply search filter if active
+                                if (typeof filterFiles === 'function') {
+                                    filterFiles();
+                                }
+                            });
+                    }
+                })
+                .catch(err => console.error('Error checking for updates:', err));
+        }
+
+        // Start polling every 2 seconds
+        setInterval(checkForUpdates, 2000);
     </script>
 </body>
 

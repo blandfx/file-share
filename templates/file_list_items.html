@@ -1,0 +1,68 @@
+{% for file in files %}
+        <li class="file-item">
+            <div class="file-name" title="{{ file.name }}">
+                {% if file.is_editable %}
+                <span data-filename="{{ file.name }}"
+                    onclick="window.location.href='{{ url_for('submit_text', filename=file.name) }}'"
+                    onmouseenter="showPreview(event, '{{ file.name }}')"
+                    onmousemove="movePreview(event)"
+                    onmouseleave="hidePreview()">{{ file.name
+                    }}</span>
+                {% else %}
+                <span data-filename="{{ file.name }}" 
+                    onclick="openModal('{{ file.name }}')"
+                    onmouseenter="showPreview(event, '{{ file.name }}')"
+                    onmousemove="movePreview(event)"
+                    onmouseleave="hidePreview()">{{ file.name }}</span>
+                {% endif %}
+            </div>
+            <div class="file-details">
+                <div class="file-size">{{ format_size(file.size) }}</div>
+
+                <!-- Collapsible button for mobile -->
+                <button class="collapse-toggle" title="More Actions" onclick="toggleFileActions(this)">
+                </button>
+
+                <!-- Expanded actions menu for mobile -->
+                <div class="file-actions-expanded">
+                    <div class="file-size-mobile">{{ format_size(file.size) }}</div>
+                    <button class="rename-button-mobile" title="Rename File" style="background-color: #ffc107;">
+                        <i class="fas fa-edit"></i>
+                        Rename
+                    </button>
+                    <button class="copy-button-mobile" title="Copy Link"
+                        onclick="copyToClipboard('{{ file.name }}', this)">
+                        <i class="fas fa-copy"></i>
+                        Copy Link
+                    </button>
+                    <a href="/media/{{ file.name }}" download class="download-button-mobile" title="Download File">
+                        <button style="background-color: #28a745;">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                    </a>
+                    <button class="delete-button-mobile" style="background-color: #ff0707;" title="Delete File"
+                        onclick="deleteFile('{{ file.name }}', this)">
+                        <i class="fas fa-times"></i>
+                        Delete
+                    </button>
+                </div>
+
+                <!-- Desktop buttons -->
+                <button class="rename-button" title="Rename File" style="background-color: #ffc107;">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="copy-button" title="Copy Link" onclick="copyToClipboard('{{ file.name }}', this)">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <a href="/media/{{ file.name }}" download class="download-button" title="Download File">
+                    <button style="background-color: #28a745;">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </a>
+                <button class="delete-button" title="Delete File" onclick="deleteFile('{{ file.name }}', this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </li>
+        {% endfor %}

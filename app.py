@@ -719,6 +719,116 @@ def test_json():
 # Define editable extensions
 EDITABLE_EXTENSIONS = {'.txt', '.conf', '.m3u', '.m3u8', '.ini', '.json', '.md', '.xml', '.yaml', '.yml', '.sh', '.py', '.css', '.js', '.html'}
 
+# File Manager for caching and background updates
+class FileManager:
+    def __init__(self, directory_path, ignore_file_path):
+        self.directory_path = directory_path
+        self.ignore_file_path = ignore_file_path
+        self.files_cache = []
+        self.last_update_timestamp = 0
+        self.last_access_time = 0
+        self.lock = threading.Lock()
+        self.thread = None
+        
+        # Initial population to ensure we have data immediately
+        self.update_cache()
+
+    def _background_scanner(self):
+        logger.info("Starting background file scanner thread")
+        while True:
+            # Check if we should stop due to inactivity (e.g., 5 minutes)
+            with self.lock:
+                if time.time() - self.last_access_time > 300:
+                    self.thread = None
+                    logger.info("Stopping background file scanner due to inactivity")
+                    break
+            
+            self.update_cache()
+            time.sleep(2)
+
+    def start_scanner(self):
+        with self.lock:
+            self.last_access_time = time.time()
+            if self.thread is None or not self.thread.is_alive():
+                self.thread = threading.Thread(target=self._background_scanner, daemon=True)
+                self.thread.start()
+
+    def update_cache(self):
+        with app.app_context():
+            try:
+                ignored_files = set()
+                if os.path.isfile(self.ignore_file_path):
+                    with open(self.ignore_file_path, 'r') as f:
+                        ignored_files = {line.strip() for line in f if line.strip()}
+
+                if not os.path.exists(self.directory_path):
+                    logger.warning(f"Directory not found: {self.directory_path}")
+                    return
+
+                files = os.listdir(self.directory_path)
+                
+                # Use os.stat to get info efficiently
+                files_with_details = []
+                current_files_set = set()
+                
+                for f in files:
+                    file_path = os.path.join(self.directory_path, f)
+                    if os.path.isfile(file_path) and f not in ignored_files:
+                        try:
+                            stat = os.stat(file_path)
+                            files_with_details.append({
+                                'name': f,
+                                'is_editable': any(f.endswith(ext) for ext in EDITABLE_EXTENSIONS),
+                                'size': stat.st_size,
+                                'mtime': stat.st_mtime
+                            })
+                            current_files_set.add(f)
+                        except OSError:
+                            continue # File might have been deleted during iteration
+
+                files_sorted = sorted(files_with_details, key=lambda x: x['mtime'], reverse=True)
+                
+                # Check if changed (simple length check + first item check + hash if needed)
+                # For now, just checking if the sorted list is different is enough, 
+                # but comparing list of dicts can be expensive. 
+                # Optimization: compare modification time of the directory itself? 
+                # Linux updates dir mtime when files are added/removed, but NOT when files are modified.
+                # So we must compare the lists.
+                
+                # Serialize for comparison
+                # Using a simplified comparison to avoid excessive CPU
+                
+                with self.lock:
+                    # Check if content actually changed
+                    if self.files_cache != files_sorted:
+                        self.files_cache = files_sorted
+                        self.last_update_timestamp = time.time()
+                        
+            except Exception as e:
+                logger.error(f"Error in file scanner: {e}")
+
+    def get_files(self):
+        with self.lock:
+            return self.files_cache
+
+    def get_last_update(self):
+        with self.lock:
+            return self.last_update_timestamp
+
+# Initialize FileManager
+FILE_MANAGER = None
+
+# Initialize directly on startup
+try:
+    directory_path = '/mnt/synology/misc/media/'
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    ignore_file_path = os.path.join(app_dir, 'ignore.txt')
+    FILE_MANAGER = FileManager(directory_path, ignore_file_path)
+except Exception as e:
+    logger.error(f"Failed to initialize FileManager: {e}")
+    # Fallback to prevent crash, though functionality will be broken
+    FILE_MANAGER = FileManager('/tmp', '/tmp/ignore.txt')
+
 @app.route('/')
 @app.route('/files')
 def list_files():
@@ -726,27 +836,40 @@ def list_files():
     if 'authenticated' not in session:
         return redirect('https://blandfx.com/files/login')
     
-    directory_path = '/mnt/synology/misc/media/'  # Update this path to the path of your NAS directory
-    # Correctly locate ignore.txt in the application's root directory
-    app_dir = os.path.dirname(os.path.abspath(__file__))
-    ignore_file_path = os.path.join(app_dir, 'ignore.txt')
+    FILE_MANAGER.start_scanner()
+    files_sorted = FILE_MANAGER.get_files()
+    last_update = FILE_MANAGER.get_last_update()
+    
+    return render_template('files.html', files=files_sorted, last_update_timestamp=last_update)
 
-    ignored_files = set()
-    if os.path.isfile(ignore_file_path):
-        with open(ignore_file_path, 'r') as f:
-            ignored_files = {line.strip() for line in f if line.strip()}
+@app.route('/files/check_updates')
+def check_updates():
+    if 'authenticated' not in session:
+        return jsonify({'updated': False}), 401
+    
+    FILE_MANAGER.start_scanner()
+    try:
+        client_timestamp = float(request.args.get('last_update', 0))
+    except ValueError:
+        client_timestamp = 0
+        
+    server_timestamp = FILE_MANAGER.get_last_update()
+    
+    if server_timestamp > client_timestamp:
+        return jsonify({
+            'updated': True, 
+            'timestamp': server_timestamp,
+            'count': len(FILE_MANAGER.get_files())
+        })
+    return jsonify({'updated': False})
 
-    files = os.listdir(directory_path)
-    files_with_details = [
-        {
-            'name': f,
-            'edit_url': url_for('submit_text', filename=f) if any(f.endswith(ext) for ext in EDITABLE_EXTENSIONS) else None,
-            'size': os.path.getsize(os.path.join(directory_path, f)),
-            'mtime': os.path.getmtime(os.path.join(directory_path, f))
-        } for f in files if os.path.isfile(os.path.join(directory_path, f)) and f not in ignored_files
-    ]
-    files_sorted = sorted(files_with_details, key=lambda x: x['mtime'], reverse=True)
-    return render_template('files.html', files=files_sorted)
+@app.route('/files/content')
+def files_content():
+    if 'authenticated' not in session:
+        return "", 401
+        
+    files_sorted = FILE_MANAGER.get_files()
+    return render_template('file_list_items.html', files=files_sorted)
 
 @app.route('/files/<path:filename>')
 def serve_file(filename):
